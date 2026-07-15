@@ -21,6 +21,28 @@ export function playSfx(name: string, volume = 0.9) {
   })
 }
 
+// Короткие звуки: один экземпляр на имя, обрывается через maxSeconds,
+// при повторном вызове начинается сначала
+const limitedAudios: Record<string, HTMLAudioElement> = {}
+const limitedTimers: Record<string, ReturnType<typeof setTimeout>> = {}
+
+export function playSfxLimited(name: string, maxSeconds = 2, volume = 0.9) {
+  if (typeof window === "undefined") return
+  let audio = limitedAudios[name]
+  if (!audio) {
+    audio = new Audio(`/sfx/${name}.mp3`)
+    limitedAudios[name] = audio
+  }
+  if (limitedTimers[name]) clearTimeout(limitedTimers[name])
+  audio.volume = volume
+  audio.currentTime = 0
+  audio.play().catch(() => {})
+  limitedTimers[name] = setTimeout(() => {
+    audio.pause()
+    audio.currentTime = 0
+  }, maxSeconds * 1000)
+}
+
 export function startMusic() {
   if (typeof window === "undefined" || musicStarted) return
   musicStarted = true

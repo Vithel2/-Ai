@@ -37,52 +37,34 @@ export function DecisionsScreen({
         className="absolute inset-0 h-full w-full object-cover"
       />
 
-      {/* Действия — слева снизу */}
-      <div className="absolute bottom-4 left-4 z-20 flex items-end gap-3">
-        {actions.map((action) => {
-          const cd = cooldowns[action.id] ?? 0
-          const onCd = cd > 0
-          return (
-            <button
-              key={action.id}
-              type="button"
-              onClick={() => onAction(action.id)}
-              disabled={onCd}
-              className="relative w-40 transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed md:w-48 lg:w-56"
-              aria-label={action.label}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={action.img || "/placeholder.svg"}
-                alt={action.label}
-                className="h-auto w-full drop-shadow-lg"
-                style={onCd ? { filter: "brightness(0.4)" } : undefined}
-              />
-              {onCd && (
-                <span className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.9)]">
-                  {cd}
-                </span>
-              )}
-            </button>
-          )
-        })}
+      {/* Действия — слева, две колонки со смещением как в оригинале */}
+      <div className="absolute top-4 left-4 z-20 flex items-start gap-4">
+        <div className="flex flex-col gap-6">
+          {actions
+            .filter((_, i) => i % 2 === 0)
+            .map((action) => (
+              <ActionButton key={action.id} action={action} cd={cooldowns[action.id] ?? 0} onAction={onAction} />
+            ))}
+        </div>
+        <div className="mt-28 flex flex-col gap-6">
+          {actions
+            .filter((_, i) => i % 2 === 1)
+            .map((action) => (
+              <ActionButton key={action.id} action={action} cd={cooldowns[action.id] ?? 0} onAction={onAction} />
+            ))}
+        </div>
       </div>
 
-      {/* Текущая покупка — по центру снизу, чуть правее середины */}
+      {/* Текущая покупка — по центру, как в оригинале */}
       {purchase && (
         <button
           type="button"
           onClick={onBuy}
-          className="absolute bottom-8 left-1/2 z-20 w-64 -translate-x-1/4 transition-transform hover:scale-105 active:scale-95 md:w-80 lg:w-96"
+          className="absolute top-1/2 left-1/2 z-20 w-64 -translate-x-1/2 -translate-y-1/4 transition-transform hover:scale-105 active:scale-95 md:w-80 lg:w-96"
           aria-label="Купить улучшение"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={purchase.img || "/placeholder.svg"} alt="Улучшение" className="h-auto w-full drop-shadow-xl" />
-          {!canAfford && (
-            <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/80 px-3 py-1 text-sm font-bold whitespace-nowrap text-red-400">
-              {`нужно ${purchase.cost}$${purchase.satietyCost ? ` и ${purchase.satietyCost} сытости` : ""}`}
-            </span>
-          )}
         </button>
       )}
 
@@ -97,5 +79,39 @@ export function DecisionsScreen({
         <img src="/img/btn-exit.png" alt="Выход" className="h-auto w-full drop-shadow-lg" />
       </button>
     </div>
+  )
+}
+
+function ActionButton({
+  action,
+  cd,
+  onAction,
+}: {
+  action: ActionDef
+  cd: number
+  onAction: (id: string) => void
+}) {
+  const onCd = cd > 0
+  return (
+    <button
+      type="button"
+      onClick={() => onAction(action.id)}
+      disabled={onCd}
+      className="relative w-40 transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed md:w-48 lg:w-56"
+      aria-label={action.label}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={action.img || "/placeholder.svg"}
+        alt={action.label}
+        className="h-auto w-full drop-shadow-lg"
+        style={onCd ? { filter: "brightness(0.4)" } : undefined}
+      />
+      {onCd && (
+        <span className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.9)]">
+          {cd}
+        </span>
+      )}
+    </button>
   )
 }

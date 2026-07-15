@@ -5,7 +5,7 @@ import { IndicatorPanel } from "@/components/indicator-panel"
 import { MainScreen } from "@/components/main-screen"
 import { DecisionsScreen, type ActionDef } from "@/components/decisions-screen"
 import { PURCHASES } from "@/lib/game-data"
-import { playSfx, startMusic } from "@/lib/audio"
+import { playSfx, playSfxLimited, startMusic } from "@/lib/audio"
 
 interface Stats {
   happiness: number
@@ -76,12 +76,13 @@ export function Game() {
           else water += b.perSec
         }
 
-        // Постепенное снижение сытости и воды
-        satiety -= 0.25
-        water -= 0.35
+        // Постепенное снижение потребностей (быстрее)
+        satiety -= 0.7
+        water -= 0.9
+        happiness -= 0.5
 
         // Если голод или жажда на нуле — счастье стремительно падает
-        if (satiety <= 0 || water <= 0) happiness -= 1
+        if (satiety <= 0 || water <= 0) happiness -= 1.5
 
         return {
           happiness: clamp(happiness),
@@ -125,10 +126,10 @@ export function Game() {
         setStats((s) => ({ ...s, satiety: clamp(s.satiety + 20) }))
       } else if (id === "bath") {
         if (unlocked.pool) {
-          playSfx("pool-splash")
+          playSfxLimited("pool-splash", 2)
           setStats((s) => ({ ...s, water: clamp(s.water + 20), happiness: clamp(s.happiness + 20) }))
         } else {
-          playSfx("swim")
+          playSfxLimited("swim", 2)
           setStats((s) => ({ ...s, water: clamp(s.water + 10), happiness: clamp(s.happiness + 15) }))
         }
       } else if (id === "fart") {

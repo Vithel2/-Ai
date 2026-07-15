@@ -21,9 +21,9 @@ export function MainScreen({ onSashaClick, onOpenDecisions }: MainScreenProps) {
   function handleSasha(e: React.MouseEvent<HTMLButtonElement>) {
     if (pressed) return
     onSashaClick()
-    // Саша сужается и темнеет на 2 секунды — в это время кликать нельзя
+    // Саша сужается и темнеет на 1 секунду — в это время кликать нельзя
     setPressed(true)
-    setTimeout(() => setPressed(false), 2000)
+    setTimeout(() => setPressed(false), 1000)
 
     const rect = e.currentTarget.getBoundingClientRect()
     const id = nextId.current++
