@@ -1,36 +1,22 @@
 "use client"
 
-import { useState, useRef } from "react"
-
-interface FloatText {
-  id: number
-  x: number
-  y: number
-}
+import { useState } from "react"
 
 interface MainScreenProps {
   onSashaClick: () => void
   onOpenDecisions: () => void
+  onOpenSettings: () => void
 }
 
-export function MainScreen({ onSashaClick, onOpenDecisions }: MainScreenProps) {
+export function MainScreen({ onSashaClick, onOpenDecisions, onOpenSettings }: MainScreenProps) {
   const [pressed, setPressed] = useState(false)
-  const [floats, setFloats] = useState<FloatText[]>([])
-  const nextId = useRef(0)
 
-  function handleSasha(e: React.MouseEvent<HTMLButtonElement>) {
+  function handleSasha() {
     if (pressed) return
     onSashaClick()
     // Саша сужается и темнеет на 1 секунду — в это время кликать нельзя
     setPressed(true)
     setTimeout(() => setPressed(false), 1000)
-
-    const rect = e.currentTarget.getBoundingClientRect()
-    const id = nextId.current++
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    setFloats((f) => [...f, { id, x, y }])
-    setTimeout(() => setFloats((f) => f.filter((t) => t.id !== id)), 1000)
   }
 
   return (
@@ -38,6 +24,17 @@ export function MainScreen({ onSashaClick, onOpenDecisions }: MainScreenProps) {
       {/* Задний фон */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/img/bg-main.jpg" alt="Куча мусора с диваном" className="absolute inset-0 h-full w-full object-cover" />
+
+      {/* Кнопка настроек — левый верхний угол */}
+      <button
+        type="button"
+        onClick={onOpenSettings}
+        className="absolute top-4 left-4 z-20 w-20 transition-transform hover:scale-105 active:scale-95 md:w-24"
+        aria-label="Открыть настройки"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/img/btn-settings.png" alt="Настройки" className="h-auto w-full drop-shadow-lg" />
+      </button>
 
       {/* Кнопка Решения — левый нижний угол */}
       <button
@@ -55,24 +52,12 @@ export function MainScreen({ onSashaClick, onOpenDecisions }: MainScreenProps) {
         type="button"
         onClick={handleSasha}
         disabled={pressed}
-        className="absolute right-4 bottom-0 z-20 w-64 cursor-pointer transition-all duration-300 md:w-80 lg:w-96"
+        className="absolute right-0 bottom-0 z-20 w-64 cursor-pointer transition-all duration-300 md:w-80 lg:w-96"
         style={pressed ? { transform: "scale(0.92)", filter: "brightness(0.6)" } : undefined}
         aria-label="Нажать на Сашу и получить один доллар"
       >
-        <span className="relative block">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/img/sasha.png" alt="Саша" className="h-auto w-full" />
-          {floats.map((f) => (
-            <span
-              key={f.id}
-              className="float-up pointer-events-none absolute z-30 text-2xl font-bold text-green-400 drop-shadow-[0_2px_2px_rgba(0,0,0,0.9)]"
-              style={{ left: f.x, top: f.y }}
-              aria-hidden="true"
-            >
-              {"+1$"}
-            </span>
-          ))}
-        </span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/img/sasha.png" alt="Саша" className="h-auto w-full" />
       </button>
     </div>
   )

@@ -38,15 +38,15 @@ export function DecisionsScreen({
       />
 
       {/* Действия — слева, две колонки со смещением как в оригинале */}
-      <div className="absolute top-4 left-4 z-20 flex items-start gap-4">
-        <div className="flex flex-col gap-6">
+      <div className="absolute top-16 left-4 z-20 flex items-start gap-5">
+        <div className="flex flex-col gap-8">
           {actions
             .filter((_, i) => i % 2 === 0)
             .map((action) => (
               <ActionButton key={action.id} action={action} cd={cooldowns[action.id] ?? 0} onAction={onAction} />
             ))}
         </div>
-        <div className="mt-28 flex flex-col gap-6">
+        <div className="mt-32 flex flex-col gap-8">
           {actions
             .filter((_, i) => i % 2 === 1)
             .map((action) => (
@@ -55,12 +55,12 @@ export function DecisionsScreen({
         </div>
       </div>
 
-      {/* Текущая покупка — по центру, как в оригинале */}
+      {/* Текущая покупка — по центру почти в самом низу */}
       {purchase && (
         <button
           type="button"
           onClick={onBuy}
-          className="absolute top-1/2 left-1/2 z-20 w-64 -translate-x-1/2 -translate-y-1/4 transition-transform hover:scale-105 active:scale-95 md:w-80 lg:w-96"
+          className="absolute bottom-4 left-1/2 z-20 w-64 -translate-x-1/2 transition-transform hover:scale-105 active:scale-95 md:w-80 lg:w-96"
           aria-label="Купить улучшение"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -97,7 +97,7 @@ function ActionButton({
       type="button"
       onClick={() => onAction(action.id)}
       disabled={onCd}
-      className="relative w-40 transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed md:w-48 lg:w-56"
+      className="relative w-48 transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed md:w-56 lg:w-64"
       aria-label={action.label}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -26,7 +26,7 @@ function pctY(y: number) {
 export function IndicatorPanel({ happiness, satiety, water, reputation, money }: IndicatorPanelProps) {
   const values: { x: number; y: number; value: number; color: string; label: string }[] = [
     { x: 330, y: 555, value: happiness, color: "#e8930c", label: "Счастье" },
-    { x: 340, y: 662, value: satiety, color: "#e8930c", label: "Сытость" },
+    { x: 340, y: 662, value: satiety, color: "#dc2626", label: "Сытость" },
     { x: 528, y: 615, value: water, color: "#2563eb", label: "Вода" },
     { x: 862, y: 568, value: reputation, color: "#1a1a1a", label: "Репутация" },
     { x: 872, y: 668, value: money, color: "#15803d", label: "Деньги" },
@@ -34,7 +34,7 @@ export function IndicatorPanel({ happiness, satiety, water, reputation, money }:
 
   return (
     <div
-      className="pointer-events-none absolute top-2 right-2 z-30 w-[420px] max-w-[45vw]"
+      className="pointer-events-none absolute top-0.5 right-0.5 z-30 w-[420px] max-w-[45vw]"
       style={{ aspectRatio: `${PANEL_W} / ${PANEL_H}` }}
       role="status"
       aria-label={`Счастье ${Math.floor(happiness)}, сытость ${Math.floor(satiety)}, вода ${Math.floor(water)}, репутация ${Math.floor(reputation)}, деньги ${Math.floor(money)}`}

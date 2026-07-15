@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { IndicatorPanel } from "@/components/indicator-panel"
 import { MainScreen } from "@/components/main-screen"
 import { DecisionsScreen, type ActionDef } from "@/components/decisions-screen"
+import { SettingsModal } from "@/components/settings-modal"
 import { PURCHASES } from "@/lib/game-data"
 import { playSfx, playSfxLimited, startMusic } from "@/lib/audio"
 
@@ -39,6 +40,7 @@ export function Game() {
     smoke: false,
   })
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({})
+  const [showSettings, setShowSettings] = useState(false)
 
   const incomePerSec = useRef(0)
   const happinessPer3Sec = useRef(0)
@@ -158,10 +160,11 @@ export function Game() {
   const handleBuy = useCallback(() => {
     if (!purchase || !canAfford) return
 
-    // Звуки покупки
-    playSfx(purchase.sounds[0])
+    // Звуки покупки: обрезаем до 4 секунд, "метаться крысами" — потише
+    const playBuySound = (name: string) => playSfxLimited(name, 4, name === "throw-rats" ? 0.5 : 0.8)
+    playBuySound(purchase.sounds[0])
     if (purchase.sounds[1]) {
-      setTimeout(() => playSfx(purchase.sounds[1]), purchase.soundDelay ?? 500)
+      setTimeout(() => playBuySound(purchase.sounds[1]), purchase.soundDelay ?? 500)
     }
 
     // Пассивные эффекты
@@ -214,7 +217,11 @@ export function Game() {
   return (
     <main className="relative h-dvh w-full overflow-hidden bg-background">
       {screen === "main" ? (
-        <MainScreen onSashaClick={handleSashaClick} onOpenDecisions={() => setScreen("decisions")} />
+        <MainScreen
+          onSashaClick={handleSashaClick}
+          onOpenDecisions={() => setScreen("decisions")}
+          onOpenSettings={() => setShowSettings(true)}
+        />
       ) : (
         <DecisionsScreen
           actions={actions}
@@ -234,6 +241,8 @@ export function Game() {
         reputation={stats.reputation}
         money={stats.money}
       />
+
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
     </main>
   )
 }
