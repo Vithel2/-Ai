@@ -13,7 +13,7 @@ export interface Purchase {
   /** временный бонус */
   temp?: { stat: "happiness" | "water"; perSec: number; duration: number }
   /** особые разблокировки */
-  unlocks?: "zlata" | "pool" | "smoke"
+  unlocks?: "zlata" | "pool" | "smoke" | "emperor"
   sounds: string[]
   /** задержка второго звука, мс */
   soundDelay?: number
@@ -130,6 +130,13 @@ export const PURCHASES: Purchase[] = [
     sounds: ["surprise"],
   },
   {
+    id: "zlata-site",
+    img: "/img/buy-zlata-site.png",
+    cost: 80,
+    incomePerSec: 10,
+    sounds: ["buy-upgrade"],
+  },
+  {
     id: "capture",
     img: "/img/buy-16-capture.png",
     cost: 250,
@@ -181,5 +188,20 @@ export const PURCHASES: Purchase[] = [
     sounds: ["plant-noise"],
     soundMaxSeconds: 2,
     soundVolume: 0.45,
+  },
+  {
+    id: "emperor",
+    img: "/img/buy-23-emperor.png",
+    cost: 650,
+    reputation: 35,
+    unlocks: "emperor",
+    sounds: ["huge-fall"],
+  },
+  {
+    id: "protests",
+    img: "/img/buy-24-protests.png",
+    cost: 300,
+    reputation: 15,
+    sounds: ["protests"],
   },
 ]

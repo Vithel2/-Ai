@@ -5,6 +5,7 @@ import { IndicatorPanel } from "@/components/indicator-panel"
 import { MainScreen } from "@/components/main-screen"
 import { DecisionsScreen, type ActionDef } from "@/components/decisions-screen"
 import { SettingsModal } from "@/components/settings-modal"
+import { LoadingScreen } from "@/components/loading-screen"
 import { PURCHASES } from "@/lib/game-data"
 import { playSfx, playSfxLimited, stopSfx, startMusic } from "@/lib/audio"
 
@@ -25,6 +26,7 @@ interface TempBonus {
 const clamp = (v: number, min = 0, max = 100) => Math.min(max, Math.max(min, v))
 
 export function Game() {
+  const [loading, setLoading] = useState(true)
   const [screen, setScreen] = useState<"main" | "decisions">("main")
   const [stats, setStats] = useState<Stats>({
     happiness: 35,
@@ -34,10 +36,11 @@ export function Game() {
     money: 0,
   })
   const [purchaseIndex, setPurchaseIndex] = useState(0)
-  const [unlocked, setUnlocked] = useState<{ zlata: boolean; pool: boolean; smoke: boolean }>({
+  const [unlocked, setUnlocked] = useState<{ zlata: boolean; pool: boolean; smoke: boolean; emperor: boolean }>({
     zlata: false,
     pool: false,
     smoke: false,
+    emperor: false,
   })
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({})
   const [showSettings, setShowSettings] = useState(false)
@@ -64,30 +67,6 @@ export function Game() {
     const start = () => startMusic()
     window.addEventListener("pointerdown", start)
     return () => window.removeEventListener("pointerdown", start)
-  }, [])
-
-  // Предзагрузка всех картинок при старте, чтобы экраны открывались мгновенно
-  useEffect(() => {
-    const images = [
-      "/img/bg-main.jpg",
-      "/img/bg-decisions.png",
-      "/img/sasha.png",
-      "/img/btn-decisions.png",
-      "/img/btn-exit.png",
-      "/img/btn-settings.png",
-      "/img/indicator.png",
-      "/img/action-rats.png",
-      "/img/action-bath.png",
-      "/img/action-pool.png",
-      "/img/action-fart.png",
-      "/img/action-fart-upgraded.png",
-      "/img/action-zlata.png",
-      ...PURCHASES.map((p) => p.img),
-    ]
-    for (const src of images) {
-      const img = new Image()
-      img.src = src
-    }
   }, [])
 
   // Игровой цикл: 1 тик в секунду
@@ -261,6 +240,15 @@ export function Game() {
       : { id: "fart", img: "/img/action-fart.png", label: "Пердеть на линейке: счастье +20" },
   ]
 
+  // Обязательная загрузка всех файлов перед началом игры
+  if (loading) {
+    return (
+      <main className="relative h-dvh w-full overflow-hidden bg-background">
+        <LoadingScreen onDone={() => setLoading(false)} />
+      </main>
+    )
+  }
+
   return (
     <main className="relative h-dvh w-full overflow-hidden bg-background">
       {screen === "main" ? (
@@ -268,6 +256,7 @@ export function Game() {
           onSashaClick={handleSashaClick}
           onOpenDecisions={() => setScreen("decisions")}
           onOpenSettings={() => setShowSettings(true)}
+          emperor={unlocked.emperor}
         />
       ) : (
         <DecisionsScreen
@@ -278,6 +267,7 @@ export function Game() {
           onAction={handleAction}
           onBuy={handleBuy}
           onExit={() => setScreen("main")}
+          emperor={unlocked.emperor}
         />
       )}
 

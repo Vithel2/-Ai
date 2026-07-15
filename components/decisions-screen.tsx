@@ -16,6 +16,8 @@ interface DecisionsScreenProps {
   onAction: (id: string) => void
   onBuy: () => void
   onExit: () => void
+  /** куплено "возомнить себя императором мусорок" — фон становится имперским */
+  emperor?: boolean
 }
 
 export function DecisionsScreen({
@@ -26,6 +28,7 @@ export function DecisionsScreen({
   onAction,
   onBuy,
   onExit,
+  emperor,
 }: DecisionsScreenProps) {
   return (
     <div className="absolute inset-0">
@@ -34,7 +37,8 @@ export function DecisionsScreen({
       <img
         src="/img/bg-decisions.png"
         alt="Школьный класс"
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 h-full w-full object-cover transition-[filter] duration-1000"
+        style={emperor ? { filter: "sepia(0.55) saturate(1.6) hue-rotate(-15deg) brightness(1.05)" } : undefined}
       />
 
       {/* Действия — слева, две колонки со смещением как в оригинале */}
