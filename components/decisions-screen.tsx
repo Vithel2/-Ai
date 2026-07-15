@@ -35,10 +35,9 @@ export function DecisionsScreen({
       {/* Фон решений */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/img/bg-decisions.png"
-        alt="Школьный класс"
-        className="absolute inset-0 h-full w-full object-cover transition-[filter] duration-1000"
-        style={emperor ? { filter: "sepia(0.55) saturate(1.6) hue-rotate(-15deg) brightness(1.05)" } : undefined}
+        src={emperor ? "/img/bg-emperor.jpg" : "/img/bg-decisions.png"}
+        alt={emperor ? "Трон императора всех помоек на свалке" : "Школьный класс"}
+        className="absolute inset-0 h-full w-full object-cover"
       />
 
       {/* Действия — слева, две колонки со смещением как в оригинале */}

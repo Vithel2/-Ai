@@ -11,6 +11,7 @@ const IMAGES = [
   "action-rats.png",
   "action-zlata.png",
   "bg-decisions.png",
+  "bg-emperor.jpg",
   "bg-main.jpg",
   "btn-decisions.png",
   "btn-exit.png",

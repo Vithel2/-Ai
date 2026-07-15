@@ -44,6 +44,11 @@ export function Game() {
   })
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({})
   const [showSettings, setShowSettings] = useState(false)
+  const [dead, setDead] = useState(false)
+
+  // Пока открыты настройки — игра на паузе
+  const pausedRef = useRef(false)
+  pausedRef.current = showSettings || dead
 
   const incomePerSec = useRef(0)
   const happinessPer3Sec = useRef(0)
@@ -72,6 +77,9 @@ export function Game() {
   // Игровой цикл: 1 тик в секунду
   useEffect(() => {
     const interval = setInterval(() => {
+      // В настройках или после смерти все процессы стоят
+      if (pausedRef.current) return
+
       tickCount.current++
       const now = Date.now()
       tempBonuses.current = tempBonuses.current.filter((b) => b.until > now)
@@ -100,6 +108,11 @@ export function Game() {
 
         // Если голод или жажда на нуле — счастье стремительно падает
         if (satiety <= 0 || water <= 0) happiness -= 1.5
+
+        // Смерть: вода, сытость и счастье все на нуле одновременно
+        if (happiness <= 0 && satiety <= 0 && water <= 0) {
+          setDead(true)
+        }
 
         return {
           happiness: clamp(happiness),
@@ -233,23 +246,46 @@ export function Game() {
 
   // Набор кнопок действий (меняются от покупок)
   const actions: ActionDef[] = [
-    // После покупки Златы кнопка "ловить крыс" заменяется на "поиграться с Златой"
-    unlocked.zlata
-      ? { id: "zlata", img: "/img/action-zlata.png", label: "Поиграться с Златой: счастье +50" }
-      : { id: "rats", img: "/img/action-rats.png", label: "Ловить крыс: сытость +20" },
+    // Ловить крыс никогда не меняется
+    { id: "rats", img: "/img/action-rats.png", label: "Ловить крыс: сытость +20" },
+    // После покупки бассейна "купаться в мусорке" меняется на "купаться в мусорном бассейне"
     unlocked.pool
       ? { id: "bath", img: "/img/action-pool.png", label: "Купаться в мусорном бассейне: вода +20, счастье +20" }
       : { id: "bath", img: "/img/action-bath.png", label: "Купаться в мусорке: вода +10, счастье +15" },
+    // После прокачки "пердеть по-крупному" кнопка линейки меняется на родительское собрание
     unlocked.smoke
-      ? { id: "fart", img: "/img/action-fart-upgraded.png", label: "Дымовая завеса: счастье +25, +3$" }
+      ? { id: "fart", img: "/img/action-fart-upgraded.png", label: "Пердеть на родительском собрании: счастье +25, +3$" }
       : { id: "fart", img: "/img/action-fart.png", label: "Пердеть на линейке: счастье +20" },
   ]
+  // Злата — отдельная кнопка после покупки, остальные не заменяет
+  if (unlocked.zlata) {
+    actions.push({ id: "zlata", img: "/img/action-zlata.png", label: "Поиграться с Златой: счастье +50" })
+  }
 
   // Обязательная загрузка всех файлов перед началом игры
   if (loading) {
     return (
       <main className="relative h-dvh w-full overflow-hidden bg-background">
         <LoadingScreen onDone={() => setLoading(false)} />
+      </main>
+    )
+  }
+
+  // Смерть Саши: вода, сытость и счастье на нуле
+  if (dead) {
+    return (
+      <main className="relative flex h-dvh w-full flex-col items-center justify-center gap-6 overflow-hidden bg-black px-8">
+        <h1 className="text-center text-4xl font-bold text-red-600 text-balance md:text-5xl">Саша умер...</h1>
+        <p className="text-center text-lg text-neutral-400 text-pretty">
+          Вода, сытость и счастье упали до нуля. Помойка осталась без хозяина.
+        </p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="rounded-xl bg-red-700 px-8 py-4 text-xl font-bold text-white transition-colors hover:bg-red-600"
+        >
+          Начать заново
+        </button>
       </main>
     )
   }
@@ -261,7 +297,6 @@ export function Game() {
           onSashaClick={handleSashaClick}
           onOpenDecisions={() => setScreen("decisions")}
           onOpenSettings={() => setShowSettings(true)}
-          emperor={unlocked.emperor}
         />
       ) : (
         <DecisionsScreen

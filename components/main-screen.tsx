@@ -6,11 +6,9 @@ interface MainScreenProps {
   onSashaClick: () => void
   onOpenDecisions: () => void
   onOpenSettings: () => void
-  /** куплено "возомнить себя императором мусорок" — фон становится имперским */
-  emperor?: boolean
 }
 
-export function MainScreen({ onSashaClick, onOpenDecisions, onOpenSettings, emperor }: MainScreenProps) {
+export function MainScreen({ onSashaClick, onOpenDecisions, onOpenSettings }: MainScreenProps) {
   const [pressed, setPressed] = useState(false)
 
   function handleSasha() {
@@ -25,12 +23,7 @@ export function MainScreen({ onSashaClick, onOpenDecisions, onOpenSettings, empe
     <div className="absolute inset-0">
       {/* Задний фон */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/img/bg-main.jpg"
-        alt="Куча мусора с диваном"
-        className="absolute inset-0 h-full w-full object-cover transition-[filter] duration-1000"
-        style={emperor ? { filter: "sepia(0.55) saturate(1.6) hue-rotate(-15deg) brightness(1.05)" } : undefined}
-      />
+      <img src="/img/bg-main.jpg" alt="Куча мусора с диваном" className="absolute inset-0 h-full w-full object-cover" />
 
       {/* Кнопка настроек — левый верхний угол */}
       <button
