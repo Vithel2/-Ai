@@ -40,18 +40,19 @@ export function DecisionsScreen({
         className="absolute inset-0 h-full w-full object-cover"
       />
 
-      {/* Действия — слева, две колонки со смещением как в оригинале */}
-      <div className="absolute top-16 left-4 z-20 flex items-start gap-5">
-        <div className="flex flex-col gap-8">
+      {/* Действия — слева, две колонки со смещением как в оригинале.
+          Злата всегда в первой (левой) колонке, чтобы не прятаться за карточкой покупки */}
+      <div className="absolute top-4 left-4 z-20 flex items-start gap-5">
+        <div className="flex flex-col gap-1">
           {actions
-            .filter((_, i) => i % 2 === 0)
+            .filter((a, i) => i % 2 === 0 || a.id === "zlata")
             .map((action) => (
               <ActionButton key={action.id} action={action} cd={cooldowns[action.id] ?? 0} onAction={onAction} />
             ))}
         </div>
-        <div className="mt-32 flex flex-col gap-8">
+        <div className="mt-24 flex flex-col gap-1">
           {actions
-            .filter((_, i) => i % 2 === 1)
+            .filter((a, i) => i % 2 === 1 && a.id !== "zlata")
             .map((action) => (
               <ActionButton key={action.id} action={action} cd={cooldowns[action.id] ?? 0} onAction={onAction} />
             ))}
@@ -100,14 +101,14 @@ function ActionButton({
       type="button"
       onClick={() => onAction(action.id)}
       disabled={onCd}
-      className="relative w-52 transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed md:w-64 lg:w-72"
+      className="relative transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed"
       aria-label={action.label}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={action.img || "/placeholder.svg"}
         alt={action.label}
-        className="h-auto w-full drop-shadow-lg"
+        className="h-48 w-auto object-contain drop-shadow-lg md:h-56 lg:h-64"
         style={onCd ? { filter: "brightness(0.4)" } : undefined}
       />
       {onCd && (

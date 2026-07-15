@@ -109,8 +109,8 @@ export function Game() {
         // Если голод или жажда на нуле — счастье стремительно падает
         if (satiety <= 0 || water <= 0) happiness -= 1.5
 
-        // Смерть: вода, сытость и счастье все на нуле одновременно
-        if (happiness <= 0 && satiety <= 0 && water <= 0) {
+        // Смерть: любой из показателей (счастье, сытость, вода) упал до нуля
+        if (happiness <= 0 || satiety <= 0 || water <= 0) {
           setDead(true)
         }
 
@@ -271,13 +271,13 @@ export function Game() {
     )
   }
 
-  // Смерть Саши: вода, сытость и счастье на нуле
+  // Смерть Саши: один из показателей упал до нуля
   if (dead) {
     return (
       <main className="relative flex h-dvh w-full flex-col items-center justify-center gap-6 overflow-hidden bg-black px-8">
         <h1 className="text-center text-4xl font-bold text-red-600 text-balance md:text-5xl">Саша умер...</h1>
         <p className="text-center text-lg text-neutral-400 text-pretty">
-          Вода, сытость и счастье упали до нуля. Помойка осталась без хозяина.
+          Один из показателей упал до нуля. Помойка осталась без хозяина.
         </p>
         <button
           type="button"
