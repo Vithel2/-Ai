@@ -55,7 +55,7 @@ export function playSfx(name: string, volume = 1) {
 const limitedAudios: Record<string, HTMLAudioElement> = {}
 const limitedTimers: Record<string, ReturnType<typeof setTimeout>> = {}
 
-export function playSfxLimited(name: string, maxSeconds = 2, volume = 1) {
+export function playSfxLimited(name: string, maxSeconds = 2, volume = 1, startAt = 0) {
   if (typeof window === "undefined") return
   let audio = limitedAudios[name]
   if (!audio) {
@@ -64,7 +64,7 @@ export function playSfxLimited(name: string, maxSeconds = 2, volume = 1) {
   }
   if (limitedTimers[name]) clearTimeout(limitedTimers[name])
   audio.volume = Math.min(1, volume * sfxVolume)
-  audio.currentTime = 0
+  audio.currentTime = startAt
   audio.play().catch(() => {})
   limitedTimers[name] = setTimeout(() => {
     audio.pause()

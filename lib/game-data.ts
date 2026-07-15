@@ -23,6 +23,8 @@ export interface Purchase {
   soundVolume?: number
   /** остановить этот звук при следующей покупке */
   stopOnNextPurchase?: boolean
+  /** начать воспроизведение звука с этой секунды (пропуск тишины в начале) */
+  soundStartAt?: number
 }
 
 // Цепочка покупок: после удачной покупки кнопка меняется на следующую
@@ -140,10 +142,12 @@ export const PURCHASES: Purchase[] = [
     id: "capture",
     img: "/img/buy-16-capture.png",
     cost: 250,
-    // Звук войны: до 10 секунд, обрывается при следующей покупке
+    // Звук войны: до 10 секунд, обрывается при следующей покупке.
+    // Первые ~2.8 сек в файле почти тишина — пропускаем их.
     sounds: ["war-shootout"],
     soundMaxSeconds: 10,
     stopOnNextPurchase: true,
+    soundStartAt: 2.8,
   },
   {
     id: "rename",
@@ -195,13 +199,13 @@ export const PURCHASES: Purchase[] = [
     cost: 650,
     reputation: 35,
     unlocks: "emperor",
-    sounds: ["huge-fall"],
+    sounds: ["protests"],
   },
   {
     id: "protests",
     img: "/img/buy-24-protests.png",
     cost: 300,
     reputation: 15,
-    sounds: ["protests"],
+    sounds: ["huge-fall"],
   },
 ]

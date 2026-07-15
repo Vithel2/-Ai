@@ -184,7 +184,12 @@ export function Game() {
     // Звуки покупки: обрезаем по лимиту (по умолчанию 4 сек), "метаться крысами" — потише
     const maxSec = purchase.soundMaxSeconds ?? 4
     const playBuySound = (name: string) =>
-      playSfxLimited(name, maxSec, purchase.soundVolume ?? (name === "throw-rats" ? 0.5 : 0.8))
+      playSfxLimited(
+        name,
+        maxSec,
+        purchase.soundVolume ?? (name === "throw-rats" ? 0.5 : 0.8),
+        purchase.soundStartAt ?? 0,
+      )
     playBuySound(purchase.sounds[0])
     if (purchase.sounds[1]) {
       setTimeout(() => playBuySound(purchase.sounds[1]), purchase.soundDelay ?? 500)
