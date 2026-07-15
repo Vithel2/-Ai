@@ -54,6 +54,30 @@ export function Game() {
     return () => window.removeEventListener("pointerdown", start)
   }, [])
 
+  // Предзагрузка всех картинок при старте, чтобы экраны открывались мгновенно
+  useEffect(() => {
+    const images = [
+      "/img/bg-main.jpg",
+      "/img/bg-decisions.png",
+      "/img/sasha.png",
+      "/img/btn-decisions.png",
+      "/img/btn-exit.png",
+      "/img/btn-settings.png",
+      "/img/indicator.png",
+      "/img/action-rats.png",
+      "/img/action-bath.png",
+      "/img/action-pool.png",
+      "/img/action-fart.png",
+      "/img/action-fart-upgraded.png",
+      "/img/action-zlata.png",
+      ...PURCHASES.map((p) => p.img),
+    ]
+    for (const src of images) {
+      const img = new Image()
+      img.src = src
+    }
+  }, [])
+
   // Игровой цикл: 1 тик в секунду
   useEffect(() => {
     const interval = setInterval(() => {
