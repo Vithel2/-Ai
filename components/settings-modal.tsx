@@ -5,11 +5,21 @@ import { getMusicVolume, getSfxVolume, setMusicVolume, setSfxVolume } from "@/li
 
 interface SettingsModalProps {
   onClose: () => void
+  onCode?: (code: string) => boolean
 }
 
-export function SettingsModal({ onClose }: SettingsModalProps) {
+export function SettingsModal({ onClose, onCode }: SettingsModalProps) {
   const [music, setMusic] = useState(() => Math.round(getMusicVolume() * 100))
   const [sfx, setSfx] = useState(() => Math.round(getSfxVolume() * 100))
+  const [code, setCode] = useState("")
+  const [codeStatus, setCodeStatus] = useState<"idle" | "ok" | "bad">("idle")
+
+  function submitCode() {
+    if (!code.trim()) return
+    const accepted = onCode?.(code) ?? false
+    setCodeStatus(accepted ? "ok" : "bad")
+    setCode("")
+  }
 
   function handleMusic(v: number) {
     setMusic(v)
@@ -61,6 +71,37 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           />
         </div>
 
+        <div className="mb-6">
+          <label htmlFor="cheat-code" className="mb-2 block font-bold text-white">
+            Ввести код
+          </label>
+          <div className="flex gap-2">
+            <input
+              id="cheat-code"
+              type="text"
+              value={code}
+              onChange={(e) => {
+                setCode(e.target.value)
+                setCodeStatus("idle")
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.nativeEvent.isComposing && e.keyCode !== 229) submitCode()
+              }}
+              placeholder="Код..."
+              className="min-w-0 flex-1 rounded-lg border-2 border-neutral-600 bg-neutral-900 px-3 py-2 text-white placeholder:text-neutral-500 focus:border-green-500 focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={submitCode}
+              className="shrink-0 rounded-lg bg-neutral-600 px-4 py-2 font-bold text-white transition-colors hover:bg-neutral-500"
+            >
+              ОК
+            </button>
+          </div>
+          {codeStatus === "ok" && <p className="mt-2 text-sm font-bold text-green-400">Код принят!</p>}
+          {codeStatus === "bad" && <p className="mt-2 text-sm font-bold text-red-400">Неверный код</p>}
+        </div>
+
         <button
           type="button"
           onClick={onClose}
@@ -69,9 +110,10 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           Закрыть
         </button>
 
-        <p className="text-center text-xs leading-relaxed text-neutral-400 text-pretty">
+        <p className="mb-2 text-center text-xs leading-relaxed text-neutral-400 text-pretty">
           Все совпадения случайны и автор игры не берёт ответственность за данную игру.
         </p>
+        <p className="text-center text-xs font-bold text-neutral-500">Версия игры: Alpha 1.0</p>
       </div>
     </div>
   )

@@ -156,7 +156,7 @@ export const PURCHASES: Purchase[] = [
     img: "/img/buy-19-director.png",
     cost: 250,
     reputation: 7,
-    sounds: ["fart-meeting"],
+    sounds: ["fart-long"],
   },
   {
     id: "ban-hygiene",

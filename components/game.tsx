@@ -47,6 +47,17 @@ export function Game() {
   const tempBonuses = useRef<TempBonus[]>([])
   const tickCount = useRef(0)
   const stopOnNextSound = useRef<string | null>(null)
+  const infiniteMoney = useRef(false)
+
+  // Чит-код из настроек
+  const handleCheatCode = useCallback((code: string): boolean => {
+    if (code.trim() === "Vithel") {
+      infiniteMoney.current = true
+      setStats((s) => ({ ...s, money: 999999 }))
+      return true
+    }
+    return false
+  }, [])
 
   // Запуск музыки после первого взаимодействия
   useEffect(() => {
@@ -116,7 +127,7 @@ export function Game() {
           satiety: clamp(satiety),
           water: clamp(water),
           reputation,
-          money: Math.max(0, money),
+          money: infiniteMoney.current ? 999999 : Math.max(0, money),
         }
       })
 
@@ -227,7 +238,7 @@ export function Game() {
     // Списание и мгновенные эффекты
     setStats((s) => ({
       ...s,
-      money: s.money - purchase.cost,
+      money: infiniteMoney.current ? 999999 : s.money - purchase.cost,
       satiety: clamp(s.satiety - (purchase.satietyCost ?? 0) + (purchase.satiety ?? 0)),
       happiness: clamp(s.happiness + (purchase.happiness ?? 0)),
     }))
@@ -238,7 +249,10 @@ export function Game() {
 
   // Набор кнопок действий (меняются от покупок)
   const actions: ActionDef[] = [
-    { id: "rats", img: "/img/action-rats.png", label: "Ловить крыс: сытость +20" },
+    // После покупки Златы кнопка "ловить крыс" заменяется на "поиграться с Златой"
+    unlocked.zlata
+      ? { id: "zlata", img: "/img/action-zlata.png", label: "Поиграться с Златой: счастье +50" }
+      : { id: "rats", img: "/img/action-rats.png", label: "Ловить крыс: сытость +20" },
     unlocked.pool
       ? { id: "bath", img: "/img/action-pool.png", label: "Купаться в мусорном бассейне: вода +20, счастье +20" }
       : { id: "bath", img: "/img/action-bath.png", label: "Купаться в мусорке: вода +10, счастье +15" },
@@ -246,9 +260,6 @@ export function Game() {
       ? { id: "fart", img: "/img/action-fart-upgraded.png", label: "Дымовая завеса: счастье +25, +3$" }
       : { id: "fart", img: "/img/action-fart.png", label: "Пердеть на линейке: счастье +20" },
   ]
-  if (unlocked.zlata) {
-    actions.push({ id: "zlata", img: "/img/action-zlata.png", label: "Поиграться с Златой: счастье +50" })
-  }
 
   return (
     <main className="relative h-dvh w-full overflow-hidden bg-background">
@@ -278,7 +289,7 @@ export function Game() {
         money={stats.money}
       />
 
-      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} onCode={handleCheatCode} />}
     </main>
   )
 }
