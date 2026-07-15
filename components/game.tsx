@@ -6,7 +6,7 @@ import { MainScreen } from "@/components/main-screen"
 import { DecisionsScreen, type ActionDef } from "@/components/decisions-screen"
 import { SettingsModal } from "@/components/settings-modal"
 import { PURCHASES } from "@/lib/game-data"
-import { playSfx, playSfxLimited, startMusic } from "@/lib/audio"
+import { playSfx, playSfxLimited, stopSfx, startMusic } from "@/lib/audio"
 
 interface Stats {
   happiness: number
@@ -46,6 +46,7 @@ export function Game() {
   const happinessPer3Sec = useRef(0)
   const tempBonuses = useRef<TempBonus[]>([])
   const tickCount = useRef(0)
+  const stopOnNextSound = useRef<string | null>(null)
 
   // Запуск музыки после первого взаимодействия
   useEffect(() => {
@@ -184,11 +185,22 @@ export function Game() {
   const handleBuy = useCallback(() => {
     if (!purchase || !canAfford) return
 
-    // Звуки покупки: обрезаем до 4 секунд, "метаться крысами" — потише
-    const playBuySound = (name: string) => playSfxLimited(name, 4, name === "throw-rats" ? 0.5 : 0.8)
+    // Останавливаем звук предыдущей покупки, если он играет до следующей прокачки
+    if (stopOnNextSound.current) {
+      stopSfx(stopOnNextSound.current)
+      stopOnNextSound.current = null
+    }
+
+    // Звуки покупки: обрезаем по лимиту (по умолчанию 4 сек), "метаться крысами" — потише
+    const maxSec = purchase.soundMaxSeconds ?? 4
+    const playBuySound = (name: string) =>
+      playSfxLimited(name, maxSec, purchase.soundVolume ?? (name === "throw-rats" ? 0.5 : 0.8))
     playBuySound(purchase.sounds[0])
     if (purchase.sounds[1]) {
       setTimeout(() => playBuySound(purchase.sounds[1]), purchase.soundDelay ?? 500)
+    }
+    if (purchase.stopOnNextPurchase) {
+      stopOnNextSound.current = purchase.sounds[0]
     }
 
     // Пассивные эффекты

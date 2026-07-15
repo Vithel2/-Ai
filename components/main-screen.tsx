@@ -29,7 +29,7 @@ export function MainScreen({ onSashaClick, onOpenDecisions, onOpenSettings }: Ma
       <button
         type="button"
         onClick={onOpenSettings}
-        className="absolute top-4 left-4 z-20 w-20 transition-transform hover:scale-105 active:scale-95 md:w-24"
+        className="absolute top-4 left-4 z-20 w-36 transition-transform hover:scale-105 active:scale-95 md:w-44 lg:w-48"
         aria-label="Открыть настройки"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -40,7 +40,7 @@ export function MainScreen({ onSashaClick, onOpenDecisions, onOpenSettings }: Ma
       <button
         type="button"
         onClick={onOpenDecisions}
-        className="absolute bottom-8 left-8 z-20 w-44 transition-transform hover:scale-105 active:scale-95 md:w-56 lg:w-64"
+        className="absolute bottom-8 left-8 z-20 w-52 transition-transform hover:scale-105 active:scale-95 md:w-64 lg:w-72"
         aria-label="Открыть решения"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { getMusicVolume, getSfxVolume, playSfx, setMusicVolume, setSfxVolume } from "@/lib/audio"
+import { getMusicVolume, getSfxVolume, setMusicVolume, setSfxVolume } from "@/lib/audio"
 
 interface SettingsModalProps {
   onClose: () => void
@@ -19,7 +19,6 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   function handleSfx(v: number) {
     setSfx(v)
     setSfxVolume(v / 100)
-    playSfx("click")
   }
 
   return (

@@ -69,6 +69,15 @@ export function playSfxLimited(name: string, maxSeconds = 2, volume = 1) {
   }, maxSeconds * 1000)
 }
 
+export function stopSfx(name: string) {
+  const audio = limitedAudios[name]
+  if (audio) {
+    audio.pause()
+    audio.currentTime = 0
+  }
+  if (limitedTimers[name]) clearTimeout(limitedTimers[name])
+}
+
 export function startMusic() {
   if (typeof window === "undefined" || musicStarted) return
   musicStarted = true

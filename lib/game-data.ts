@@ -17,6 +17,12 @@ export interface Purchase {
   sounds: string[]
   /** задержка второго звука, мс */
   soundDelay?: number
+  /** максимальная длительность звука покупки, сек (по умолчанию 4) */
+  soundMaxSeconds?: number
+  /** громкость звука покупки (0..1) */
+  soundVolume?: number
+  /** остановить этот звук при следующей покупке */
+  stopOnNextPurchase?: boolean
 }
 
 // Цепочка покупок: после удачной покупки кнопка меняется на следующую
@@ -110,5 +116,70 @@ export const PURCHASES: Purchase[] = [
     cost: 100,
     reputation: 5,
     sounds: ["build"],
+  },
+  {
+    id: "poem",
+    img: "/img/buy-14-poem.png",
+    cost: 150,
+    sounds: ["pencil"],
+  },
+  {
+    id: "rat-gift",
+    img: "/img/buy-15-rat-gift.png",
+    cost: 100,
+    sounds: ["surprise"],
+  },
+  {
+    id: "capture",
+    img: "/img/buy-16-capture.png",
+    cost: 250,
+    // Звук войны: до 10 секунд, обрывается при следующей покупке
+    sounds: ["war-shootout"],
+    soundMaxSeconds: 10,
+    stopOnNextPurchase: true,
+  },
+  {
+    id: "rename",
+    img: "/img/buy-17-rename.png",
+    cost: 275,
+    sounds: ["slide-change"],
+  },
+  {
+    id: "rebuild",
+    img: "/img/buy-18-rebuild.png",
+    cost: 300,
+    reputation: 5,
+    sounds: ["jackhammer"],
+  },
+  {
+    id: "fart-director",
+    img: "/img/buy-19-director.png",
+    cost: 250,
+    reputation: 7,
+    sounds: ["fart-meeting"],
+  },
+  {
+    id: "ban-hygiene",
+    img: "/img/buy-20-hygiene.png",
+    cost: 250,
+    reputation: 10,
+    sounds: ["court-hammer"],
+  },
+  {
+    id: "ban-washing",
+    img: "/img/buy-21-washing.png",
+    cost: 300,
+    reputation: 10,
+    sounds: ["court-hammer"],
+  },
+  {
+    id: "car-production",
+    img: "/img/buy-22-cars.png",
+    cost: 300,
+    incomePerSec: 15,
+    // Шум завода: пару секунд и негромко
+    sounds: ["plant-noise"],
+    soundMaxSeconds: 2,
+    soundVolume: 0.45,
   },
 ]

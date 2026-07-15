@@ -97,7 +97,7 @@ function ActionButton({
       type="button"
       onClick={() => onAction(action.id)}
       disabled={onCd}
-      className="relative w-48 transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed md:w-56 lg:w-64"
+      className="relative w-52 transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed md:w-64 lg:w-72"
       aria-label={action.label}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
