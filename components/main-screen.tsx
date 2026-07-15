@@ -19,9 +19,11 @@ export function MainScreen({ onSashaClick, onOpenDecisions }: MainScreenProps) {
   const nextId = useRef(0)
 
   function handleSasha(e: React.MouseEvent<HTMLButtonElement>) {
+    if (pressed) return
     onSashaClick()
+    // Саша сужается и темнеет на 2 секунды — в это время кликать нельзя
     setPressed(true)
-    setTimeout(() => setPressed(false), 150)
+    setTimeout(() => setPressed(false), 2000)
 
     const rect = e.currentTarget.getBoundingClientRect()
     const id = nextId.current++
@@ -41,7 +43,7 @@ export function MainScreen({ onSashaClick, onOpenDecisions }: MainScreenProps) {
       <button
         type="button"
         onClick={onOpenDecisions}
-        className="absolute bottom-6 left-6 z-20 w-36 transition-transform hover:scale-105 active:scale-95 md:w-44"
+        className="absolute bottom-8 left-8 z-20 w-44 transition-transform hover:scale-105 active:scale-95 md:w-56 lg:w-64"
         aria-label="Открыть решения"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -52,8 +54,9 @@ export function MainScreen({ onSashaClick, onOpenDecisions }: MainScreenProps) {
       <button
         type="button"
         onClick={handleSasha}
-        className="absolute right-4 bottom-0 z-20 w-56 cursor-pointer transition-all duration-150 md:w-72"
-        style={pressed ? { transform: "scale(0.92)", filter: "brightness(0.55)" } : undefined}
+        disabled={pressed}
+        className="absolute right-4 bottom-0 z-20 w-64 cursor-pointer transition-all duration-300 md:w-80 lg:w-96"
+        style={pressed ? { transform: "scale(0.92)", filter: "brightness(0.6)" } : undefined}
         aria-label="Нажать на Сашу и получить один доллар"
       >
         <span className="relative block">

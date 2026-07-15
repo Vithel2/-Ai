@@ -48,7 +48,7 @@ export function DecisionsScreen({
               type="button"
               onClick={() => onAction(action.id)}
               disabled={onCd}
-              className="relative w-28 transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed md:w-36"
+              className="relative w-40 transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed md:w-48 lg:w-56"
               aria-label={action.label}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -73,12 +73,16 @@ export function DecisionsScreen({
         <button
           type="button"
           onClick={onBuy}
-          className="absolute bottom-6 left-1/2 z-20 w-44 -translate-x-1/4 transition-transform hover:scale-105 active:scale-95 md:w-56"
-          style={!canAfford ? { filter: "grayscale(0.7) brightness(0.6)" } : undefined}
+          className="absolute bottom-8 left-1/2 z-20 w-64 -translate-x-1/4 transition-transform hover:scale-105 active:scale-95 md:w-80 lg:w-96"
           aria-label="Купить улучшение"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={purchase.img || "/placeholder.svg"} alt="Улучшение" className="h-auto w-full drop-shadow-xl" />
+          {!canAfford && (
+            <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/80 px-3 py-1 text-sm font-bold whitespace-nowrap text-red-400">
+              {`нужно ${purchase.cost}$${purchase.satietyCost ? ` и ${purchase.satietyCost} сытости` : ""}`}
+            </span>
+          )}
         </button>
       )}
 
@@ -86,7 +90,7 @@ export function DecisionsScreen({
       <button
         type="button"
         onClick={onExit}
-        className="absolute right-4 bottom-24 z-20 w-32 transition-transform hover:scale-105 active:scale-95 md:w-40"
+        className="absolute right-6 bottom-1/3 z-20 w-40 transition-transform hover:scale-105 active:scale-95 md:w-48 lg:w-56"
         aria-label="Вернуться на главный экран"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}

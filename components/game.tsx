@@ -111,7 +111,8 @@ export function Game() {
 
   // Клик по Саше: +1$
   const handleSashaClick = useCallback(() => {
-    playSfx("click", 0.5)
+    startMusic()
+    playSfx("click", 0.8)
     setStats((s) => ({ ...s, money: s.money + 1 }))
   }, [])
 
