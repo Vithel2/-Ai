@@ -85,16 +85,25 @@ interface LoadingScreenProps {
 
 export function LoadingScreen({ onDone }: LoadingScreenProps) {
   const [loaded, setLoaded] = useState(0)
-  const [canSkip, setCanSkip] = useState(false)
+  const [secondsLeft, setSecondsLeft] = useState(5)
   const doneRef = useRef(false)
+  const startRef = useRef(0)
 
   const total = ALL_FILES.length
   const percent = Math.round((loaded / total) * 100)
+  const canSkip = secondsLeft <= 0
 
-  // Пропуск разрешён только через 5 секунд
+  // Пропуск разрешён только через 5 секунд: отсчёт по реальному времени,
+  // чтобы кнопка гарантированно разблокировалась
   useEffect(() => {
-    const t = setTimeout(() => setCanSkip(true), 5000)
-    return () => clearTimeout(t)
+    if (startRef.current === 0) startRef.current = Date.now()
+    const tick = () => {
+      const left = Math.max(0, 5 - Math.floor((Date.now() - startRef.current) / 1000))
+      setSecondsLeft(left)
+    }
+    tick()
+    const interval = setInterval(tick, 250)
+    return () => clearInterval(interval)
   }, [])
 
   // Загружаем все файлы в кеш браузера
