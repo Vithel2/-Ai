@@ -211,7 +211,7 @@ export function Game() {
             return { ...c, protest: { ...c.protest, strength } }
           }
           // Мирное время: стабильность постепенно падает сама
-          const stability = Math.max(0, c.stability - 0.35)
+          const stability = Math.max(0, c.stability - 0.6)
           if (stability < 20) {
             // Начался протест: стабильность скрывается, сила протеста растёт с малого
             return { ...c, stability, protest: { strength: 5, fastUntil: 0 } }
