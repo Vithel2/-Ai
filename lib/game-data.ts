@@ -93,7 +93,8 @@ export const PURCHASES: Purchase[] = [
   {
     id: "pool",
     img: "/img/buy-10-pool.png",
-    cost: 60,
+    // Бассейн из мусорки — бесплатно
+    cost: 0,
     unlocks: "pool",
     sounds: ["pool-splash"],
   },
