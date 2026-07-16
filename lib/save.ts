@@ -22,6 +22,8 @@ export interface SaveData {
     rats: number
     protest: { strength: number; fastUntil: number } | null
   }
+  /** Промокод «vonuchka» от Артёма: получен и/или уже активирован */
+  promo?: { unlocked: boolean; used: boolean }
 }
 
 const KEY = "sasha-porasha-save-v1"

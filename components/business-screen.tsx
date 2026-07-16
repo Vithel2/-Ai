@@ -6,14 +6,17 @@ interface BusinessScreenProps {
 
 /**
  * Экран «Решение бизнеса».
- * Пока пустой — фон и кнопки появятся позже (картинки будут заменены,
- * когда пользователь их пришлёт).
+ * Кнопки бизнеса появятся позже (пользователь пришлёт картинки).
  */
 export function BusinessScreen({ onExit }: BusinessScreenProps) {
   return (
     <div className="absolute inset-0 overflow-y-auto bg-neutral-900">
-      {/* Временный фон — будет заменён картинкой пользователя */}
-      <div className="absolute inset-0 bg-gradient-to-b from-neutral-800 to-neutral-950" aria-hidden="true" />
+      {/* Фон экрана бизнеса */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "url(/img/business-bg.png)" }}
+        aria-hidden="true"
+      />
 
       {/* Кнопка выхода — слева по центру, как на экране города.
           Картинка будет заменена, когда пользователь пришлёт свою. */}
@@ -31,7 +34,9 @@ export function BusinessScreen({ onExit }: BusinessScreenProps) {
         <h2 className="text-center text-3xl font-bold text-white text-balance drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] md:text-4xl short:text-xl">
           Решение бизнеса
         </h2>
-        <p className="text-center text-lg text-neutral-400 text-pretty short:text-sm">Скоро здесь появится бизнес...</p>
+        <p className="text-center text-lg font-bold text-white text-pretty drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] short:text-sm">
+          Скоро здесь появится бизнес...
+        </p>
       </div>
     </div>
   )

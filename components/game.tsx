@@ -86,11 +86,22 @@ export function Game() {
   const stopOnNextSound = useRef<string | null>(null)
   const infiniteMoney = useRef(false)
 
-  // Чит-код из настроек
+  // Промокод «vonuchka» от Артёма (ивент «У Саши маленький»)
+  const promoUnlocked = useRef(false)
+  const promoUsed = useRef(false)
+
+  // Чит-код и промокоды из настроек
   const handleCheatCode = useCallback((code: string): boolean => {
-    if (code.trim() === "Vithel") {
+    const trimmed = code.trim()
+    if (trimmed === "Vithel") {
       infiniteMoney.current = true
       setStats((s) => ({ ...s, money: 999999 }))
+      return true
+    }
+    if (trimmed.toLowerCase() === "vonuchka" && promoUnlocked.current && !promoUsed.current) {
+      promoUsed.current = true
+      playSfx("level-up")
+      setStats((s) => ({ ...s, reputation: s.reputation + 50 }))
       return true
     }
     return false
@@ -120,6 +131,8 @@ export function Game() {
       lampFailed.current = save.lampFailed
       incomePerSec.current = save.incomePerSec
       happinessPer3Sec.current = save.happinessPer3Sec
+      promoUnlocked.current = save.promo?.unlocked ?? false
+      promoUsed.current = save.promo?.used ?? false
       setStats(save.stats)
       setPurchaseIndex(save.purchaseIndex)
       setUnlocked(save.unlocked)
@@ -140,6 +153,7 @@ export function Game() {
       incomePerSec: incomePerSec.current,
       happinessPer3Sec: happinessPer3Sec.current,
       city,
+      promo: { unlocked: promoUnlocked.current, used: promoUsed.current },
     })
   }, [restored, stats, purchaseIndex, unlocked, dead, ending, city])
 
@@ -192,7 +206,7 @@ export function Game() {
         }
       }
 
-      // Город: стабильность падает, протесты растут, содержание крыс списывается
+      // Город: стабильность падает, протесты расту��, содержание крыс списывается
       if (cityUnlockedRef.current) {
         setCity((c) => {
           if (c.protest) {
@@ -283,6 +297,7 @@ export function Game() {
     nextEventAllowedAt.current = Date.now() + 10000
 
     if (outcome.lampFailed) lampFailed.current = true
+    if (outcome.grantsPromo) promoUnlocked.current = true
     if (outcome.effects) {
       const e = outcome.effects
       setStats((s) => ({

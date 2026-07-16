@@ -18,6 +18,8 @@ export interface EventOutcome {
   finalEnding?: boolean
   /** пометить, что лампа не сработала — откроет ивент 10 */
   lampFailed?: boolean
+  /** Артём даёт промокод «vonuchka» — его можно ввести в настройках */
+  grantsPromo?: boolean
 }
 
 export interface EventChoice {
@@ -164,7 +166,7 @@ export const GAME_EVENTS: GameEvent[] = [
         label: "Позвонить Тимерхуну",
         outcomes: [
           { chance: 0.4, text: "У Саши больше! Тимерхун повержен. +50 репутации", effects: { reputation: 50 } },
-          { chance: 0.6, text: "У Тимерхуна бо��ьше... Унижение. -25 репутации", effects: { reputation: -25 } },
+          { chance: 0.6, text: "У Тимерхуна больше... Унижение. -25 репутации", effects: { reputation: -25 } },
         ],
       },
       {
@@ -222,6 +224,40 @@ export const GAME_EVENTS: GameEvent[] = [
       {
         label: "Остаться после уроков",
         outcomes: [{ chance: 1, text: "Скучно, но спокойно. +35 счастья", effects: { happiness: 35 } }],
+      },
+    ],
+  },
+  {
+    id: "too-small",
+    img: "/img/event-15-small.png",
+    alt: "У Саши маленький",
+    // Поздняя игра: после «Сделать Злате сайт»
+    condition: ({ purchased }) => purchased.has("zlata-site"),
+    choices: [
+      {
+        label: "Позвать Тимерхуна",
+        outcomes: [{ chance: 1, text: "Тимерхун подтвердил: нормальный. +35 репутации", effects: { reputation: 35 } }],
+      },
+      {
+        label: "Позвать Злату",
+        outcomes: [
+          {
+            chance: 1,
+            text: "Злата посмеялась, но Саше понравилось. -25 репутации, +50 счастья",
+            effects: { reputation: -25, happiness: 50 },
+          },
+        ],
+      },
+      {
+        label: "Заказать себе Артёма за 25$",
+        outcomes: [
+          {
+            chance: 1,
+            text: "Артём приехал и шепнул промокод: «vonuchka». Введи его в настройках! -25$",
+            effects: { money: -25 },
+            grantsPromo: true,
+          },
+        ],
       },
     ],
   },
