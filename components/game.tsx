@@ -85,6 +85,11 @@ export function Game() {
   const tickCount = useRef(0)
   const stopOnNextSound = useRef<string | null>(null)
   const infiniteMoney = useRef(false)
+  // Тестовый код: все покупки бесплатны (денег не даёт)
+  const freePurchases = useRef(false)
+  // Тестовый код VMCT2: показывает, сколько денег реально списалось с прокачки
+  const priceDebug = useRef(false)
+  const [priceLog, setPriceLog] = useState<{ id: string; charged: number; total: number } | null>(null)
 
   // Промокод «vonuchka» от Артёма (ивент «У Саши маленький»)
   const promoUnlocked = useRef(false)
@@ -96,6 +101,17 @@ export function Game() {
     if (trimmed === "Vithel") {
       infiniteMoney.current = true
       setStats((s) => ({ ...s, money: 999999 }))
+      return true
+    }
+    if (trimmed === "VMCT") {
+      freePurchases.current = true
+      // Перерисовать, чтобы кнопка покупки сразу стала доступной
+      setStats((s) => ({ ...s }))
+      return true
+    }
+    if (trimmed === "VMCT2") {
+      priceDebug.current = true
+      setPriceLog({ id: "—", charged: 0, total: 0 })
       return true
     }
     if (trimmed.toLowerCase() === "vonuchka" && promoUnlocked.current && !promoUsed.current) {
@@ -257,7 +273,7 @@ export function Game() {
           else water += b.perSec
         }
 
-        // Постепенное снижение потребностей (быстрее)
+        // Постепенное снижение потребност��й (быстрее)
         satiety -= 0.7
         water -= 0.9
         happiness -= 0.5
@@ -448,7 +464,9 @@ export function Game() {
   // Покупка текущего улучшения в цепочке
   const purchase = purchaseIndex < PURCHASES.length ? PURCHASES[purchaseIndex] : null
   const canAfford =
-    !!purchase && stats.money >= purchase.cost && stats.satiety >= (purchase.satietyCost ?? 0)
+    !!purchase &&
+    (freePurchases.current ||
+      (stats.money >= purchase.cost && stats.satiety >= (purchase.satietyCost ?? 0)))
 
   const handleBuy = useCallback(() => {
     if (!purchase || !canAfford) return
@@ -497,11 +515,18 @@ export function Game() {
     // Репутация с звуком нового уровня
     if (purchase.reputation) addReputation(purchase.reputation)
 
+    // Тестовый режим VMCT2: фиксируем, сколько реально списалось.
+    // Считаем вне setStats — апдейтер в dev-режиме React вызывается дважды.
+    if (priceDebug.current) {
+      const charged = infiniteMoney.current || freePurchases.current ? 0 : purchase.cost
+      setPriceLog((p) => ({ id: purchase.id, charged, total: (p?.total ?? 0) + charged }))
+    }
+
     // Списание и мгновенные эффекты
     setStats((s) => ({
       ...s,
-      money: infiniteMoney.current ? 999999 : s.money - purchase.cost,
-      satiety: clamp(s.satiety - (purchase.satietyCost ?? 0) + (purchase.satiety ?? 0)),
+      money: infiniteMoney.current ? 999999 : freePurchases.current ? s.money : s.money - purchase.cost,
+      satiety: clamp(s.satiety - (freePurchases.current ? 0 : (purchase.satietyCost ?? 0)) + (purchase.satiety ?? 0)),
       happiness: clamp(s.happiness + (purchase.happiness ?? 0)),
     }))
 
@@ -667,6 +692,13 @@ export function Game() {
       />
 
       {activeEvent && <EventModal event={activeEvent} onResolve={handleEventResolve} />}
+
+      {/* Тестовый оверлей VMCT2: реальное списание денег с прокачек */}
+      {priceLog && (
+        <div className="pointer-events-none fixed bottom-2 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-black/80 px-3 py-1.5 font-mono text-xs text-green-400">
+          {`Списано: ${priceLog.charged}$ (${priceLog.id}) | всего: ${priceLog.total}$`}
+        </div>
+      )}
 
       {showSettings && (
         <SettingsModal

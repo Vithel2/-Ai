@@ -93,7 +93,8 @@ export const PURCHASES: Purchase[] = [
   {
     id: "pool",
     img: "/img/buy-10-pool.png",
-    cost: 60,
+    // Бассейн из мусорки — бесплатно
+    cost: 0,
     unlocks: "pool",
     sounds: ["pool-splash"],
   },
@@ -134,14 +135,16 @@ export const PURCHASES: Purchase[] = [
   {
     id: "zlata-site",
     img: "/img/buy-zlata-site.png",
-    cost: 350,
+    // На картинке написано «цена 80$» — цена должна совпадать
+    cost: 80,
     incomePerSec: 10,
     sounds: ["buy-upgrade"],
   },
   {
     id: "capture",
     img: "/img/buy-16-capture.png",
-    cost: 500,
+    // Цена должна совпадать с картинкой — 250$
+    cost: 250,
     // Звук войны: до 10 секунд, обрывается при следующей покупке.
     // Первые ~2.8 сек в файле почти тишина — пропускаем их.
     sounds: ["war-shootout"],
@@ -152,41 +155,47 @@ export const PURCHASES: Purchase[] = [
   {
     id: "rename",
     img: "/img/buy-17-rename.png",
-    cost: 650,
+    // На картинке написано «цена=275$» — цена должна совпадать
+    cost: 275,
     sounds: ["slide-change"],
   },
   {
     id: "rebuild",
     img: "/img/buy-18-rebuild.png",
-    cost: 750,
+    // На картинке написано «цена=300$» — цена должна совпадать
+    cost: 300,
     reputation: 5,
     sounds: ["jackhammer"],
   },
   {
     id: "fart-director",
     img: "/img/buy-19-director.png",
-    cost: 850,
+    // На картинке написано «цена=250$»
+    cost: 250,
     reputation: 7,
     sounds: ["fart-long"],
   },
   {
     id: "ban-hygiene",
     img: "/img/buy-20-hygiene.png",
-    cost: 950,
+    // На картинке написано «цена 250$»
+    cost: 250,
     reputation: 10,
     sounds: ["court-hammer"],
   },
   {
     id: "ban-washing",
     img: "/img/buy-21-washing.png",
-    cost: 1100,
+    // На картинке написано «цена 300$»
+    cost: 300,
     reputation: 10,
     sounds: ["court-hammer"],
   },
   {
     id: "car-production",
     img: "/img/buy-22-cars.png",
-    cost: 1300,
+    // На картинке написано «цена=300$»
+    cost: 300,
     incomePerSec: 15,
     // Шум завода: пару секунд и негромко
     sounds: ["plant-noise"],
@@ -196,7 +205,8 @@ export const PURCHASES: Purchase[] = [
   {
     id: "emperor",
     img: "/img/buy-23-emperor.png",
-    cost: 2000,
+    // На картинке написано «цена 650$»
+    cost: 650,
     reputation: 35,
     unlocks: "emperor",
     sounds: ["protests"],
@@ -204,7 +214,8 @@ export const PURCHASES: Purchase[] = [
   {
     id: "protests",
     img: "/img/buy-24-protests.png",
-    cost: 1500,
+    // На картинке написано «цена=300$»
+    cost: 300,
     reputation: 15,
     sounds: ["huge-fall"],
   },

@@ -167,7 +167,7 @@ export function SettingsModal({ onClose, onCode, onResetProgress }: SettingsModa
         <p className="mb-2 text-center text-xs leading-relaxed text-neutral-400 text-pretty">
           Все совпадения случайны и автор игры не берёт ответственность за данную игру.
         </p>
-        <p className="text-center text-xs font-bold text-neutral-500">Версия игры: Alpha 1.0</p>
+        <p className="text-center text-xs font-bold text-neutral-500">Версия игры: Beta 1.0</p>
       </div>
     </div>
   )
