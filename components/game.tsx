@@ -6,6 +6,7 @@ import { MainScreen } from "@/components/main-screen"
 import { DecisionsScreen, type ActionDef } from "@/components/decisions-screen"
 import { SettingsModal } from "@/components/settings-modal"
 import { EventModal } from "@/components/event-modal"
+import { CityScreen, RAT_UPKEEP_PER_RAT, type CityState } from "@/components/city-screen"
 import { PURCHASES } from "@/lib/game-data"
 import { GAME_EVENTS, type EventOutcome, type GameEvent } from "@/lib/events-data"
 import { preloadAssets } from "@/lib/preload"
@@ -29,7 +30,7 @@ interface TempBonus {
 const clamp = (v: number, min = 0, max = 100) => Math.min(max, Math.max(min, v))
 
 export function Game() {
-  const [screen, setScreen] = useState<"main" | "decisions">("main")
+  const [screen, setScreen] = useState<"main" | "decisions" | "city">("main")
   const [stats, setStats] = useState<Stats>({
     happiness: 35,
     satiety: 35,
@@ -48,9 +49,14 @@ export function Game() {
   const [showSettings, setShowSettings] = useState(false)
   const [dead, setDead] = useState(false)
 
+  // Город: стабильность, армия крыс, протесты (открывается после захвата Давлекановки)
+  const [city, setCity] = useState<CityState>({ stability: 100, rats: 0, protest: null })
+  const cityRef = useRef(city)
+  cityRef.current = city
+
   // Ивенты
   const [activeEvent, setActiveEvent] = useState<GameEvent | null>(null)
-  const [ending, setEnding] = useState<"secret" | "final" | null>(null)
+  const [ending, setEnding] = useState<"secret" | "final" | "coup" | null>(null)
   const eventsDone = useRef<Set<string>>(new Set())
   const lampFailed = useRef(false)
   // Задержка только для ивентов без привязки к покупке (ЖОПА ПОЛНАЯ 2 после лампы)
@@ -65,6 +71,12 @@ export function Game() {
   purchaseIndexRef.current = purchaseIndex
   const reputationRef = useRef(0)
   reputationRef.current = stats.reputation
+
+  // Город открыт после захвата Давлекановки
+  const captureIndex = PURCHASES.findIndex((p) => p.id === "capture")
+  const cityUnlocked = captureIndex >= 0 && purchaseIndex > captureIndex
+  const cityUnlockedRef = useRef(false)
+  cityUnlockedRef.current = cityUnlocked
 
   const incomePerSec = useRef(0)
   const happinessPer3Sec = useRef(0)
@@ -110,6 +122,7 @@ export function Game() {
       setStats(save.stats)
       setPurchaseIndex(save.purchaseIndex)
       setUnlocked(save.unlocked)
+      if (save.city) setCity(save.city)
     }
     setRestored(true)
   }, [])
@@ -125,8 +138,9 @@ export function Game() {
       lampFailed: lampFailed.current,
       incomePerSec: incomePerSec.current,
       happinessPer3Sec: happinessPer3Sec.current,
+      city,
     })
-  }, [restored, stats, purchaseIndex, unlocked, dead, ending])
+  }, [restored, stats, purchaseIndex, unlocked, dead, ending, city])
 
   // Смерть или концовка — сохранение стирается, игра начинается заново
   useEffect(() => {
@@ -177,11 +191,45 @@ export function Game() {
         }
       }
 
+      // Город: стабильность падает, протесты растут, содержание крыс списывается
+      if (cityUnlockedRef.current) {
+        setCity((c) => {
+          if (c.protest) {
+            // Протест: сила растёт (быстрее после лёгкого подавления)
+            const fast = c.protest.fastUntil > now
+            const growth = fast ? 1.2 : 0.5
+            const strength = c.protest.strength + growth
+            // Сила выше 50% — с каждым приростом растёт шанс переворота
+            if (strength > 50 && Math.random() < (strength - 50) / 400) {
+              setEnding("coup")
+              return c
+            }
+            if (strength >= 100) {
+              setEnding("coup")
+              return c
+            }
+            return { ...c, protest: { ...c.protest, strength } }
+          }
+          // Мирное время: стабильность постепенно падает сама
+          const stability = Math.max(0, c.stability - 0.15)
+          if (stability < 20) {
+            // Начался протест: стабильность скрывается, сила протеста растёт с малого
+            return { ...c, stability, protest: { strength: 5, fastUntil: 0 } }
+          }
+          return { ...c, stability }
+        })
+      }
+
       setStats((s) => {
         let { happiness, satiety, water, reputation, money } = s
 
         // Пассивный доход
         money += incomePerSec.current
+
+        // Содержание армии крыс
+        if (cityUnlockedRef.current && cityRef.current.rats > 0) {
+          money -= cityRef.current.rats * RAT_UPKEEP_PER_RAT
+        }
 
         // Дом из мусора: +1 счастье каждые 3 секунды
         if (happinessPer3Sec.current > 0 && tickCount.current % 3 === 0) {
@@ -202,7 +250,7 @@ export function Game() {
         // Если голод или жажда на нуле — счастье стремительно падает
         if (satiety <= 0 || water <= 0) happiness -= 1.5
 
-        // Смерть: любой из показателей (счастье, сытость, вода) упал до нуля
+        // С��ерть: любой из показателей (счастье, сытость, вода) упал до нуля
         if (happiness <= 0 || satiety <= 0 || water <= 0) {
           setDead(true)
         }
@@ -248,6 +296,93 @@ export function Game() {
     if (outcome.secretEnding) setEnding("secret")
     if (outcome.finalEnding) setEnding("final")
   }, [])
+
+  // Действия города
+  const spendReputation = useCallback((amount: number): boolean => {
+    let ok = false
+    setStats((s) => {
+      if (s.reputation < amount) return s
+      ok = true
+      return { ...s, reputation: s.reputation - amount }
+    })
+    return ok
+  }, [])
+
+  const handlePropaganda = useCallback(() => {
+    if (reputationRef.current < 5) return
+    playSfx("click", 0.8)
+    spendReputation(5)
+    setCity((c) => ({ ...c, stability: Math.min(100, c.stability + 2) }))
+  }, [spendReputation])
+
+  const handleBribe = useCallback(() => {
+    if (reputationRef.current < 15) return
+    playSfx("click", 0.8)
+    spendReputation(15)
+    setCity((c) => ({ ...c, stability: Math.min(100, c.stability + 7) }))
+  }, [spendReputation])
+
+  const handlePrison = useCallback(() => {
+    if (reputationRef.current < 50) return
+    playSfx("click", 0.8)
+    spendReputation(50)
+    // Сразу -10% стабильности, через 10 секунд +50%
+    setCity((c) => ({ ...c, stability: Math.max(0, c.stability - 10) }))
+    setTimeout(() => {
+      setCity((c) => ({ ...c, stability: Math.min(100, c.stability + 50) }))
+      playSfx("level-up")
+    }, 10000)
+  }, [])
+
+  const handleHireRat = useCallback(() => {
+    setStats((s) => {
+      if (s.money < 5) return s
+      setCity((c) => ({ ...c, rats: c.rats + 1 }))
+      playSfx("click", 0.8)
+      return { ...s, money: infiniteMoney.current ? 999999 : s.money - 5 }
+    })
+  }, [])
+
+  const handleSuppress = useCallback(
+    (level: "light" | "mid" | "hard") => {
+      const c = cityRef.current
+      if (!c.protest) return
+      const cost = { light: { rats: 2, rep: 5 }, mid: { rats: 5, rep: 10 }, hard: { rats: 10, rep: 15 } }[level]
+      if (c.rats < cost.rats || reputationRef.current < cost.rep) return
+      spendReputation(cost.rep)
+      playSfx("click", 0.8)
+
+      // Шанс переворота: лёгкое 0%, среднее 5%, сильное 10%
+      const coupChance = level === "mid" ? 0.05 : level === "hard" ? 0.1 : 0
+      if (Math.random() < coupChance) {
+        setEnding("coup")
+        return
+      }
+
+      setCity((prev) => {
+        if (!prev.protest) return prev
+        const rats = prev.rats - cost.rats
+        let strength = prev.protest.strength
+        let fastUntil = prev.protest.fastUntil
+        if (level === "light") {
+          strength -= 2
+          // Временно сила протеста растёт быстрее
+          fastUntil = Date.now() + 15000
+        } else if (level === "mid") {
+          strength -= 5
+        } else {
+          strength = 0
+        }
+        if (strength <= 0) {
+          // Протест успешно подавлен — стабильность возвращается на 35%
+          playSfx("level-up")
+          return { stability: 35, rats, protest: null }
+        }
+        return { ...prev, rats, protest: { strength, fastUntil } }
+      })
+    },
+    [spendReputation],
+  )
 
   const addReputation = useCallback((amount: number) => {
     playSfx("level-up")
@@ -424,6 +559,28 @@ export function Game() {
     )
   }
 
+  // Переворот: протест победил
+  if (ending === "coup") {
+    return (
+      <main className="relative flex h-dvh w-full flex-col items-center justify-center gap-6 overflow-hidden bg-black px-8">
+        <h1 className="text-center text-4xl font-bold text-red-600 text-balance md:text-5xl">ПЕРЕВОРОТ!</h1>
+        <p className="text-center text-lg text-neutral-400 text-pretty">
+          Протест победил. Сашу свергли с трона Крысятиново. Помойка больше не его.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            clearSave()
+            window.location.reload()
+          }}
+          className="rounded-xl bg-red-700 px-8 py-4 text-xl font-bold text-white transition-colors hover:bg-red-600"
+        >
+          Начать заново
+        </button>
+      </main>
+    )
+  }
+
   // Смерть Саши: один из показателей упал до нуля
   if (dead) {
     return (
@@ -453,6 +610,20 @@ export function Game() {
           onSashaClick={handleSashaClick}
           onOpenDecisions={() => setScreen("decisions")}
           onOpenSettings={() => setShowSettings(true)}
+          cityUnlocked={cityUnlocked}
+          onOpenCity={() => setScreen("city")}
+        />
+      ) : screen === "city" ? (
+        <CityScreen
+          city={city}
+          reputation={stats.reputation}
+          money={stats.money}
+          onExit={() => setScreen("main")}
+          onPropaganda={handlePropaganda}
+          onBribe={handleBribe}
+          onPrison={handlePrison}
+          onHireRat={handleHireRat}
+          onSuppress={handleSuppress}
         />
       ) : (
         <DecisionsScreen

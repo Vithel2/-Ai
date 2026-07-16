@@ -16,6 +16,12 @@ export interface SaveData {
   lampFailed: boolean
   incomePerSec: number
   happinessPer3Sec: number
+  /** Состояние города (стабильность, армия крыс, протест) — есть не во всех сейвах */
+  city?: {
+    stability: number
+    rats: number
+    protest: { strength: number; fastUntil: number } | null
+  }
 }
 
 const KEY = "sasha-porasha-save-v1"

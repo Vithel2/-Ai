@@ -6,9 +6,11 @@ interface MainScreenProps {
   onSashaClick: () => void
   onOpenDecisions: () => void
   onOpenSettings: () => void
+  cityUnlocked: boolean
+  onOpenCity: () => void
 }
 
-export function MainScreen({ onSashaClick, onOpenDecisions, onOpenSettings }: MainScreenProps) {
+export function MainScreen({ onSashaClick, onOpenDecisions, onOpenSettings, cityUnlocked, onOpenCity }: MainScreenProps) {
   const [pressed, setPressed] = useState(false)
 
   function handleSasha() {
@@ -34,6 +36,25 @@ export function MainScreen({ onSashaClick, onOpenDecisions, onOpenSettings }: Ma
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/img/btn-settings.png" alt="Настройки" className="h-auto w-full drop-shadow-lg" />
+      </button>
+
+      {/* Кнопка Город (стабильность и армия) — над кнопкой Решения.
+          Заблокирована до захвата Давлекановки. */}
+      <button
+        type="button"
+        onClick={cityUnlocked ? onOpenCity : undefined}
+        disabled={!cityUnlocked}
+        className={`absolute bottom-44 left-8 z-20 w-32 transition-transform md:bottom-52 md:w-36 lg:bottom-60 lg:w-40 ${
+          cityUnlocked ? "hover:scale-105 active:scale-95" : "cursor-not-allowed opacity-50 grayscale"
+        }`}
+        aria-label={
+          cityUnlocked
+            ? "Открыть решения стабильности и армии"
+            : "Решения стабильности и армии: откроется после захвата Давлекановки"
+        }
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/img/city-main.png" alt="Решение стабильности и армии" className="h-auto w-full drop-shadow-lg" />
       </button>
 
       {/* Кнопка Решения — левый нижний угол */}
