@@ -53,7 +53,7 @@ export function MainScreen({
       <button
         type="button"
         onClick={onOpenBusiness}
-        className="absolute top-44 left-8 z-20 w-40 transition-transform hover:scale-105 active:scale-95 md:top-52 md:w-48 lg:top-56 lg:w-52 short:top-24 short:left-4 short:w-24"
+        className="absolute top-42 left-8 z-20 w-28 transition-transform hover:scale-105 active:scale-95 md:top-50 md:w-30 lg:top-54 lg:w-30 short:top-4 short:left-32 short:w-16"
         aria-label="Открыть решения бизнеса"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
