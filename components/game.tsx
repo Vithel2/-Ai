@@ -5,8 +5,8 @@ import { IndicatorPanel } from "@/components/indicator-panel"
 import { MainScreen } from "@/components/main-screen"
 import { DecisionsScreen, type ActionDef } from "@/components/decisions-screen"
 import { SettingsModal } from "@/components/settings-modal"
-import { LoadingScreen } from "@/components/loading-screen"
 import { PURCHASES } from "@/lib/game-data"
+import { preloadAssets } from "@/lib/preload"
 import { playSfx, playSfxLimited, stopSfx, startMusic } from "@/lib/audio"
 
 interface Stats {
@@ -26,7 +26,6 @@ interface TempBonus {
 const clamp = (v: number, min = 0, max = 100) => Math.min(max, Math.max(min, v))
 
 export function Game() {
-  const [loading, setLoading] = useState(true)
   const [screen, setScreen] = useState<"main" | "decisions">("main")
   const [stats, setStats] = useState<Stats>({
     happiness: 35,
@@ -72,6 +71,11 @@ export function Game() {
     const start = () => startMusic()
     window.addEventListener("pointerdown", start)
     return () => window.removeEventListener("pointerdown", start)
+  }, [])
+
+  // Тихая предзагрузка всех файлов в фоне
+  useEffect(() => {
+    preloadAssets()
   }, [])
 
   // Игровой цикл: 1 тик в секунду
@@ -224,7 +228,7 @@ export function Game() {
       })
     }
 
-    // Разблокировки
+    // Разблоки��овки
     if (purchase.unlocks) {
       setUnlocked((u) => ({ ...u, [purchase.unlocks as string]: true }))
     }
@@ -260,15 +264,6 @@ export function Game() {
   // Злата — отдельная кнопка после покупки, остальные не заменяет
   if (unlocked.zlata) {
     actions.push({ id: "zlata", img: "/img/action-zlata.png", label: "Поиграться с Златой: счастье +50" })
-  }
-
-  // Обязательная загрузка всех файлов перед началом игры
-  if (loading) {
-    return (
-      <main className="relative h-dvh w-full overflow-hidden bg-background">
-        <LoadingScreen onDone={() => setLoading(false)} />
-      </main>
-    )
   }
 
   // Смерть Саши: один из показателей упал до нуля
