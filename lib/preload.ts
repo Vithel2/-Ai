@@ -59,6 +59,9 @@ const IMAGES = [
   "event-8-castle.jpg",
   "event-9-lamp.jpg",
   "event-10-zhopa.jpg",
+  "event-11-ruler.png",
+  "event-12-lavrushka.png",
+  "event-13-idea.png",
   "indicator.png",
   "sasha.png",
 ].map((f) => `/img/${f}`)

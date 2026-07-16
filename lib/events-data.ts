@@ -154,6 +154,61 @@ export const GAME_EVENTS: GameEvent[] = [
     ],
   },
   {
+    id: "ruler-call",
+    img: "/img/event-11-ruler.png",
+    alt: "Саша хочет позвонить кому-то и посоревноваться с линейкой",
+    // Ранняя игра: после «Продать говно колхозникам»
+    condition: ({ purchased }) => purchased.has("sell"),
+    choices: [
+      {
+        label: "Позвонить Тимерхуну",
+        outcomes: [
+          { chance: 0.4, text: "У Саши больше! Тимерхун повержен. +50 репутации", effects: { reputation: 50 } },
+          { chance: 0.6, text: "У Тимерхуна больше... Унижение. -25 репутации", effects: { reputation: -25 } },
+        ],
+      },
+      {
+        label: "Позвонить Бурику",
+        outcomes: [
+          { chance: 0.8, text: "У Саши больше! Бурик признал поражение. +15 репутации", effects: { reputation: 15 } },
+          { chance: 0.2, text: "У Бурика больше... Обидно. -15 репутации", effects: { reputation: -15 } },
+        ],
+      },
+    ],
+  },
+  {
+    id: "lavrushka",
+    img: "/img/event-12-lavrushka.png",
+    alt: "Лаврушка застряла в заборе",
+    // Середина игры: после «Купить бассейн (лужу)»
+    condition: ({ purchased }) => purchased.has("pool"),
+    choices: [
+      { label: "Воспользоваться", outcomes: [{ chance: 1, text: "Дело сделано. +10 репутации", effects: { reputation: 10 } }] },
+      {
+        label: "Позвать Бурика и воспользоваться",
+        outcomes: [{ chance: 1, text: "Вдвоём веселее. +15 репутации", effects: { reputation: 15 } }],
+      },
+    ],
+  },
+  {
+    id: "shop-idea",
+    img: "/img/event-13-idea.png",
+    alt: "Саша хочет купить что-нибудь в магазине",
+    // Середина игры: после «Написать поэму про крысу»
+    condition: ({ purchased }) => purchased.has("poem"),
+    choices: [
+      { label: "Купить Тимерхуна", outcomes: [{ chance: 1, text: "Тимерхун теперь твой. +50 репутации", effects: { reputation: 50 } }] },
+      {
+        label: "Купить Бурика",
+        outcomes: [{ chance: 1, text: "Бурик достался бесплатно! +50 счастья, +25 репутации", effects: { happiness: 50, reputation: 25 } }],
+      },
+      {
+        label: "Купить Бурику дилдо за 20$",
+        outcomes: [{ chance: 1, text: "Бурик счастлив, все впечатлены. -20$, +25 репутации", effects: { money: -20, reputation: 25 } }],
+      },
+    ],
+  },
+  {
     id: "zhopa",
     img: "/img/event-10-zhopa.jpg",
     alt: "Арсений хочет снять ЖОПА ПОЛНАЯ 2",
