@@ -14,7 +14,7 @@ export interface EventOutcome {
   effects?: EventEffects
   /** секретная концовка (лампа джина) */
   secretEnding?: boolean
-  /** финальная концовка (УЖИВИТИК 666) */
+  /** финальная концовка (ФИЛЬМ ЖОПА ПОЛНАЯ 2) */
   finalEnding?: boolean
   /** пометить, что лампа не сработала — откроет ивент 10 */
   lampFailed?: boolean
@@ -156,7 +156,7 @@ export const GAME_EVENTS: GameEvent[] = [
   {
     id: "zhopa",
     img: "/img/event-10-zhopa.jpg",
-    alt: "Арсений хочет снять ЖОПА ПОЛНАЯ 2 (УЖИВИТИК 666)",
+    alt: "Арсений хочет снять ЖОПА ПОЛНАЯ 2",
     condition: ({ lampFailed, eventsDone }) => lampFailed && eventsDone.has("lamp"),
     choices: [{ label: "ДА", outcomes: [{ chance: 1, text: "", finalEnding: true }] }],
   },

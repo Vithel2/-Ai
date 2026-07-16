@@ -53,7 +53,7 @@ export function EventModal({ event, onResolve }: EventModalProps) {
             <button
               type="button"
               onClick={() => onResolve(result)}
-              className="rounded-xl bg-red-700 px-10 py-3 text-lg font-bold text-white transition-colors hover:bg-red-600"
+              className="rounded-2xl bg-red-700 px-14 py-4 text-2xl font-bold text-white transition-colors hover:bg-red-600"
             >
               ОК
             </button>
@@ -65,7 +65,7 @@ export function EventModal({ event, onResolve }: EventModalProps) {
                 key={choice.label}
                 type="button"
                 onClick={() => handleChoice(i)}
-                className="min-w-40 rounded-xl bg-red-700 px-6 py-3 text-lg font-bold text-white transition-transform hover:scale-105 hover:bg-red-600 active:scale-95"
+                className="min-w-52 rounded-2xl bg-red-700 px-8 py-5 text-2xl font-bold text-white transition-transform hover:scale-105 hover:bg-red-600 active:scale-95"
               >
                 {choice.label}
               </button>

@@ -85,7 +85,8 @@ export function stopSfx(name: string) {
 export function startMusic() {
   if (typeof window === "undefined" || musicStarted) return
   musicStarted = true
-  musicIndex = Math.floor(Math.random() * MUSIC_TRACKS.length)
+  // Первой всегда играет «Школьная Битва», дальше треки по кругу
+  musicIndex = MUSIC_TRACKS.indexOf("/music/school-battle.mp3")
   playNextTrack()
 }
 

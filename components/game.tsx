@@ -9,6 +9,7 @@ import { EventModal } from "@/components/event-modal"
 import { PURCHASES } from "@/lib/game-data"
 import { GAME_EVENTS, type EventOutcome, type GameEvent } from "@/lib/events-data"
 import { preloadAssets } from "@/lib/preload"
+import { loadSave, writeSave, clearSave } from "@/lib/save"
 import { playSfx, playSfxLimited, stopSfx, startMusic } from "@/lib/audio"
 
 interface Stats {
@@ -52,7 +53,8 @@ export function Game() {
   const [ending, setEnding] = useState<"secret" | "final" | null>(null)
   const eventsDone = useRef<Set<string>>(new Set())
   const lampFailed = useRef(false)
-  const nextEventAllowedAt = useRef(Date.now() + 20000)
+  // Задержка только для ивентов без привязки к покупке (ЖОПА ПОЛНАЯ 2 после лампы)
+  const nextEventAllowedAt = useRef(Date.now() + 10000)
 
   // Пока открыты настройки, ивент или концовка — игра на паузе
   const pausedRef = useRef(false)
@@ -93,6 +95,62 @@ export function Game() {
     preloadAssets()
   }, [])
 
+  // Восстановление сохранённой игры при запуске.
+  // Флаг через state: автосохранение включается только в рендере с уже применёнными данными,
+  // иначе первый рендер перезатирает сохранение начальными значениями.
+  const [restored, setRestored] = useState(false)
+  useEffect(() => {
+    const save = loadSave()
+    if (save) {
+      // Сначала восстанавливаем refs, чтобы эффекты от setState видели актуальные данные
+      eventsDone.current = new Set(save.eventsDone)
+      lampFailed.current = save.lampFailed
+      incomePerSec.current = save.incomePerSec
+      happinessPer3Sec.current = save.happinessPer3Sec
+      setStats(save.stats)
+      setPurchaseIndex(save.purchaseIndex)
+      setUnlocked(save.unlocked)
+    }
+    setRestored(true)
+  }, [])
+
+  // Автосохранение прогресса
+  useEffect(() => {
+    if (!restored || dead || ending) return
+    writeSave({
+      stats,
+      purchaseIndex,
+      unlocked,
+      eventsDone: Array.from(eventsDone.current),
+      lampFailed: lampFailed.current,
+      incomePerSec: incomePerSec.current,
+      happinessPer3Sec: happinessPer3Sec.current,
+    })
+  }, [restored, stats, purchaseIndex, unlocked, dead, ending])
+
+  // Смерть или концовка — сохранение стирается, игра начинается заново
+  useEffect(() => {
+    if (dead || ending) clearSave()
+  }, [dead, ending])
+
+  // Ивенты появляются сразу после нужной покупки (с небольшой паузой на звук покупки)
+  useEffect(() => {
+    if (!restored || purchaseIndex === 0) return
+    const purchased = new Set(PURCHASES.slice(0, purchaseIndex).map((p) => p.id))
+    const ctx = {
+      purchased,
+      reputation: reputationRef.current,
+      lampFailed: lampFailed.current,
+      eventsDone: eventsDone.current,
+    }
+    const nextEvent = GAME_EVENTS.find((e) => !eventsDone.current.has(e.id) && e.condition(ctx))
+    if (nextEvent) {
+      eventsDone.current.add(nextEvent.id)
+      const t = setTimeout(() => setActiveEvent(nextEvent), 1200)
+      return () => clearTimeout(t)
+    }
+  }, [purchaseIndex])
+
   // Игровой цикл: 1 тик в секунду
   useEffect(() => {
     const interval = setInterval(() => {
@@ -103,7 +161,7 @@ export function Game() {
       const now = Date.now()
       tempBonuses.current = tempBonuses.current.filter((b) => b.until > now)
 
-      // Проверка ивентов: не чаще, чем раз в ~20-30 сек, по одному, в порядке прогресса
+      // Проверка ивентов, не привязанных к покупкам (например, ЖОПА ПОЛНАЯ 2 после лампы)
       if (now >= nextEventAllowedAt.current) {
         const purchased = new Set(PURCHASES.slice(0, purchaseIndexRef.current).map((p) => p.id))
         const ctx = {
@@ -113,8 +171,7 @@ export function Game() {
           eventsDone: eventsDone.current,
         }
         const nextEvent = GAME_EVENTS.find((e) => !eventsDone.current.has(e.id) && e.condition(ctx))
-        // Небольшая случайность, чтобы ивент не выскакивал ровно в момент покупки
-        if (nextEvent && Math.random() < 0.2) {
+        if (nextEvent) {
           eventsDone.current.add(nextEvent.id)
           setActiveEvent(nextEvent)
         }
@@ -174,7 +231,7 @@ export function Game() {
   // Завершение ивента: применяем эффекты выбранного исхода
   const handleEventResolve = useCallback((outcome: EventOutcome) => {
     setActiveEvent(null)
-    nextEventAllowedAt.current = Date.now() + 20000 + Math.random() * 15000
+    nextEventAllowedAt.current = Date.now() + 10000
 
     if (outcome.lampFailed) lampFailed.current = true
     if (outcome.effects) {
@@ -207,7 +264,7 @@ export function Game() {
   // Действия в решениях
   const handleAction = useCallback(
     (id: string) => {
-      setCooldowns((cds) => ({ ...cds, [id]: 4 }))
+      setCooldowns((cds) => ({ ...cds, [id]: 8 }))
       if (id === "rats") {
         playSfx("eat-rats")
         setStats((s) => ({ ...s, satiety: clamp(s.satiety + 20) }))
@@ -230,7 +287,7 @@ export function Game() {
         }
       } else if (id === "zlata") {
         playSfx("zlata")
-        setCooldowns((cds) => ({ ...cds, zlata: 10 }))
+        setCooldowns((cds) => ({ ...cds, zlata: 18 }))
         setStats((s) => ({ ...s, happiness: clamp(s.happiness + 50) }))
       }
     },
@@ -331,7 +388,10 @@ export function Game() {
         </p>
         <button
           type="button"
-          onClick={() => window.location.reload()}
+          onClick={() => {
+            clearSave()
+            window.location.reload()
+          }}
           className="rounded-xl bg-yellow-600 px-8 py-4 text-xl font-bold text-black transition-colors hover:bg-yellow-500"
         >
           Начать заново
@@ -340,17 +400,22 @@ export function Game() {
     )
   }
 
-  // Финальная концовка: УЖИВИТИК 666
+  // Финальная концовка: ФИЛЬМ ЖОПА ПОЛНАЯ 2
   if (ending === "final") {
     return (
       <main className="relative flex h-dvh w-full flex-col items-center justify-center gap-6 overflow-hidden bg-black px-8">
-        <h1 className="text-center text-4xl font-bold text-red-600 text-balance md:text-5xl">{'УЖИВИТИК 666'}</h1>
+        <h1 className="text-center text-4xl font-bold text-red-600 text-balance md:text-5xl">
+          {'ФИЛЬМ "ЖОПА ПОЛНАЯ 2"'}
+        </h1>
         <p className="text-center text-lg text-neutral-400 text-pretty">
           Саша снялся в фильме Арсения. Карьера окончена. Это конец.
         </p>
         <button
           type="button"
-          onClick={() => window.location.reload()}
+          onClick={() => {
+            clearSave()
+            window.location.reload()
+          }}
           className="rounded-xl bg-red-700 px-8 py-4 text-xl font-bold text-white transition-colors hover:bg-red-600"
         >
           Начать заново
@@ -369,7 +434,10 @@ export function Game() {
         </p>
         <button
           type="button"
-          onClick={() => window.location.reload()}
+          onClick={() => {
+            clearSave()
+            window.location.reload()
+          }}
           className="rounded-xl bg-red-700 px-8 py-4 text-xl font-bold text-white transition-colors hover:bg-red-600"
         >
           Начать заново
