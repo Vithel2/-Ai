@@ -34,7 +34,7 @@ export function IndicatorPanel({ happiness, satiety, water, reputation, money }:
 
   return (
     <div
-      className="pointer-events-none absolute top-0.5 right-0.5 z-30 w-[420px] max-w-[45vw]"
+      className="pointer-events-none absolute top-0.5 right-0.5 z-30 w-[420px] max-w-[45vw] short:max-w-[38vw]"
       style={{ aspectRatio: `${PANEL_W} / ${PANEL_H}` }}
       role="status"
       aria-label={`Счастье ${Math.floor(happiness)}, сытость ${Math.floor(satiety)}, вода ${Math.floor(water)}, репутация ${Math.floor(reputation)}, деньги ${Math.floor(money)}`}
@@ -55,7 +55,7 @@ export function IndicatorPanel({ happiness, satiety, water, reputation, money }:
         {values.map((v) => (
           <span
             key={v.label}
-            className="absolute -translate-y-1/2 text-xl font-bold md:text-2xl"
+            className="absolute -translate-y-1/2 text-xl font-bold md:text-2xl short:text-sm"
             style={{ left: pctX(v.x), top: pctY(v.y), color: v.color }}
           >
             {Math.floor(v.value)}

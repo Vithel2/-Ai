@@ -42,7 +42,7 @@ export function DecisionsScreen({
 
       {/* Действия — слева, две колонки со смещением как в оригинале.
           Злата всегда в первой (левой) колонке, чтобы не прятаться за карточкой покупки */}
-      <div className="absolute top-4 left-4 z-20 flex items-start gap-5">
+      <div className="absolute top-4 left-4 z-20 flex items-start gap-5 short:top-2 short:left-2 short:gap-2">
         <div className="flex flex-col gap-1">
           {actions
             .filter((a, i) => i % 2 === 0 || a.id === "zlata")
@@ -50,7 +50,7 @@ export function DecisionsScreen({
               <ActionButton key={action.id} action={action} cd={cooldowns[action.id] ?? 0} onAction={onAction} />
             ))}
         </div>
-        <div className="mt-24 flex flex-col gap-1">
+        <div className="mt-24 flex flex-col gap-1 short:mt-12">
           {actions
             .filter((a, i) => i % 2 === 1 && a.id !== "zlata")
             .map((action) => (
@@ -64,7 +64,7 @@ export function DecisionsScreen({
         <button
           type="button"
           onClick={onBuy}
-          className="absolute bottom-4 left-1/2 z-20 w-64 -translate-x-1/2 transition-transform hover:scale-105 active:scale-95 md:w-80 lg:w-96"
+          className="absolute bottom-4 left-1/2 z-20 w-64 -translate-x-1/2 transition-transform hover:scale-105 active:scale-95 md:w-80 lg:w-96 short:bottom-2 short:w-44"
           aria-label="Купить улучшение"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -76,7 +76,7 @@ export function DecisionsScreen({
       <button
         type="button"
         onClick={onExit}
-        className="absolute right-6 bottom-1/3 z-20 w-40 transition-transform hover:scale-105 active:scale-95 md:w-48 lg:w-56"
+        className="absolute right-6 bottom-1/3 z-20 w-40 transition-transform hover:scale-105 active:scale-95 md:w-48 lg:w-56 short:right-2 short:w-24"
         aria-label="Вернуться на главный экран"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -108,7 +108,7 @@ function ActionButton({
       <img
         src={action.img || "/placeholder.svg"}
         alt={action.label}
-        className="h-48 w-auto object-contain drop-shadow-lg md:h-56 lg:h-64"
+        className="h-48 w-auto object-contain drop-shadow-lg md:h-56 lg:h-64 short:h-[23dvh]"
         style={onCd ? { filter: "brightness(0.4)" } : undefined}
       />
       {onCd && (

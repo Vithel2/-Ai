@@ -55,16 +55,16 @@ export function CityScreen({
       <button
         type="button"
         onClick={onExit}
-        className="fixed top-1/2 left-3 z-40 w-16 -translate-y-1/2 transition-transform hover:scale-110 active:scale-95 md:w-20"
+        className="fixed top-1/2 left-3 z-40 w-16 -translate-y-1/2 transition-transform hover:scale-110 active:scale-95 md:w-20 short:left-1 short:w-10"
         aria-label="Выйти из решений стабильности"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/img/city-exit.png" alt="Выход" className="h-auto w-full -scale-x-100 drop-shadow-lg" />
       </button>
 
-      <div className="relative mx-auto flex w-full max-w-2xl flex-col items-center gap-6 px-14 py-8 md:px-20">
+      <div className="relative mx-auto flex w-full max-w-2xl flex-col items-center gap-6 px-14 py-8 md:px-20 short:gap-3 short:py-3">
         <h2
-          className={`text-center text-3xl font-bold text-balance drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] md:text-4xl ${
+          className={`text-center text-3xl font-bold text-balance drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] md:text-4xl short:text-xl ${
             protest ? "animate-pulse text-red-500" : "text-white"
           }`}
         >
@@ -231,7 +231,7 @@ export function CityScreen({
             type="button"
             onClick={onHireRat}
             disabled={money < 5}
-            className="w-36 transition-transform hover:scale-105 active:scale-95 disabled:opacity-40 disabled:grayscale md:w-44"
+            className="w-36 transition-transform hover:scale-105 active:scale-95 disabled:opacity-40 disabled:grayscale md:w-44 short:w-24"
             aria-label="Нанять в армию крысу: цена 5 долларов плюс содержание"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}

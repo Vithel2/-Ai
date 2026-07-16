@@ -43,7 +43,7 @@ export function SettingsModal({ onClose, onCode, onResetProgress }: SettingsModa
       aria-modal="true"
       aria-label="Настройки"
     >
-      <div className="w-[min(90vw,420px)] rounded-2xl border-4 border-white bg-neutral-800 p-6 shadow-2xl">
+      <div className="max-h-[92dvh] w-[min(90vw,420px)] overflow-y-auto rounded-2xl border-4 border-white bg-neutral-800 p-6 shadow-2xl short:p-4">
         <h2 className="mb-6 text-center text-2xl font-bold text-white">Настройки</h2>
 
         <div className="mb-5">

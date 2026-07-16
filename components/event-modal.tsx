@@ -44,7 +44,7 @@ export function EventModal({ event, onResolve }: EventModalProps) {
         <img
           src={event.img || "/placeholder.svg"}
           alt={event.alt}
-          className="max-h-[60dvh] w-full rounded-xl border-4 border-red-700 object-contain shadow-2xl"
+          className="max-h-[60dvh] w-full rounded-xl border-4 border-red-700 object-contain shadow-2xl short:max-h-[55dvh]"
         />
 
         {result ? (
@@ -53,7 +53,7 @@ export function EventModal({ event, onResolve }: EventModalProps) {
             <button
               type="button"
               onClick={() => onResolve(result)}
-              className="rounded-2xl bg-red-700 px-14 py-4 text-2xl font-bold text-white transition-colors hover:bg-red-600"
+              className="rounded-2xl bg-red-700 px-14 py-4 text-2xl font-bold text-white transition-colors hover:bg-red-600 short:px-8 short:py-2 short:text-lg"
             >
               ОК
             </button>
@@ -65,7 +65,7 @@ export function EventModal({ event, onResolve }: EventModalProps) {
                 key={choice.label}
                 type="button"
                 onClick={() => handleChoice(i)}
-                className="min-w-52 rounded-2xl bg-red-700 px-8 py-5 text-2xl font-bold text-white transition-transform hover:scale-105 hover:bg-red-600 active:scale-95"
+                className="min-w-52 rounded-2xl bg-red-700 px-8 py-5 text-2xl font-bold text-white transition-transform hover:scale-105 hover:bg-red-600 active:scale-95 short:min-w-36 short:px-5 short:py-2 short:text-lg"
               >
                 {choice.label}
               </button>
