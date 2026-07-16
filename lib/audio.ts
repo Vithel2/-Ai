@@ -9,6 +9,7 @@ const MUSIC_TRACKS = [
   "/music/track-6.mp3",
   "/music/track-7.mp3",
   "/music/track-8.mp3",
+  "/music/school-battle.mp3",
 ]
 
 // Трек 5 (6 KLACC.FeatFirst) обрезаем на 2:22 — дальше ИИ-генератор выдал херню

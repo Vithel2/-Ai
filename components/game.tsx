@@ -5,7 +5,9 @@ import { IndicatorPanel } from "@/components/indicator-panel"
 import { MainScreen } from "@/components/main-screen"
 import { DecisionsScreen, type ActionDef } from "@/components/decisions-screen"
 import { SettingsModal } from "@/components/settings-modal"
+import { EventModal } from "@/components/event-modal"
 import { PURCHASES } from "@/lib/game-data"
+import { GAME_EVENTS, type EventOutcome, type GameEvent } from "@/lib/events-data"
 import { preloadAssets } from "@/lib/preload"
 import { playSfx, playSfxLimited, stopSfx, startMusic } from "@/lib/audio"
 
@@ -45,9 +47,22 @@ export function Game() {
   const [showSettings, setShowSettings] = useState(false)
   const [dead, setDead] = useState(false)
 
-  // Пока открыты настройки — игра на паузе
+  // Ивенты
+  const [activeEvent, setActiveEvent] = useState<GameEvent | null>(null)
+  const [ending, setEnding] = useState<"secret" | "final" | null>(null)
+  const eventsDone = useRef<Set<string>>(new Set())
+  const lampFailed = useRef(false)
+  const nextEventAllowedAt = useRef(Date.now() + 20000)
+
+  // Пока открыты настройки, ивент или концовка — игра на паузе
   const pausedRef = useRef(false)
-  pausedRef.current = showSettings || dead
+  pausedRef.current = showSettings || dead || !!activeEvent || !!ending
+
+  // Актуальный прогресс покупок для проверки условий ивентов внутри цикла
+  const purchaseIndexRef = useRef(0)
+  purchaseIndexRef.current = purchaseIndex
+  const reputationRef = useRef(0)
+  reputationRef.current = stats.reputation
 
   const incomePerSec = useRef(0)
   const happinessPer3Sec = useRef(0)
@@ -87,6 +102,23 @@ export function Game() {
       tickCount.current++
       const now = Date.now()
       tempBonuses.current = tempBonuses.current.filter((b) => b.until > now)
+
+      // Проверка ивентов: не чаще, чем раз в ~20-30 сек, по одному, в порядке прогресса
+      if (now >= nextEventAllowedAt.current) {
+        const purchased = new Set(PURCHASES.slice(0, purchaseIndexRef.current).map((p) => p.id))
+        const ctx = {
+          purchased,
+          reputation: reputationRef.current,
+          lampFailed: lampFailed.current,
+          eventsDone: eventsDone.current,
+        }
+        const nextEvent = GAME_EVENTS.find((e) => !eventsDone.current.has(e.id) && e.condition(ctx))
+        // Небольшая случайность, чтобы ивент не выскакивал ровно в момент покупки
+        if (nextEvent && Math.random() < 0.2) {
+          eventsDone.current.add(nextEvent.id)
+          setActiveEvent(nextEvent)
+        }
+      }
 
       setStats((s) => {
         let { happiness, satiety, water, reputation, money } = s
@@ -137,6 +169,27 @@ export function Game() {
       })
     }, 1000)
     return () => clearInterval(interval)
+  }, [])
+
+  // Завершение ивента: применяем эффекты выбранного исхода
+  const handleEventResolve = useCallback((outcome: EventOutcome) => {
+    setActiveEvent(null)
+    nextEventAllowedAt.current = Date.now() + 20000 + Math.random() * 15000
+
+    if (outcome.lampFailed) lampFailed.current = true
+    if (outcome.effects) {
+      const e = outcome.effects
+      setStats((s) => ({
+        happiness: clamp(s.happiness + (e.happiness ?? 0)),
+        satiety: clamp(s.satiety + (e.satiety ?? 0)),
+        water: clamp(s.water + (e.water ?? 0)),
+        reputation: s.reputation + (e.reputation ?? 0),
+        money: infiniteMoney.current ? 999999 : Math.max(0, s.money + (e.money ?? 0)),
+      }))
+      if ((e.reputation ?? 0) > 0) playSfx("level-up")
+    }
+    if (outcome.secretEnding) setEnding("secret")
+    if (outcome.finalEnding) setEnding("final")
   }, [])
 
   const addReputation = useCallback((amount: number) => {
@@ -266,6 +319,46 @@ export function Game() {
     actions.push({ id: "zlata", img: "/img/action-zlata.png", label: "Поиграться с Златой: счастье +50" })
   }
 
+  // Секретная концовка: джин услышал
+  if (ending === "secret") {
+    return (
+      <main className="relative flex h-dvh w-full flex-col items-center justify-center gap-6 overflow-hidden bg-black px-8">
+        <h1 className="text-center text-4xl font-bold text-yellow-400 text-balance md:text-5xl">
+          СЕКРЕТНАЯ КОНЦОВКА
+        </h1>
+        <p className="text-center text-lg text-yellow-200 text-pretty">
+          Джин услышал Сашу. +999 репутации. Саша стал легендой всех помоек мира.
+        </p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="rounded-xl bg-yellow-600 px-8 py-4 text-xl font-bold text-black transition-colors hover:bg-yellow-500"
+        >
+          Начать заново
+        </button>
+      </main>
+    )
+  }
+
+  // Финальная концовка: УЖИВИТИК 666
+  if (ending === "final") {
+    return (
+      <main className="relative flex h-dvh w-full flex-col items-center justify-center gap-6 overflow-hidden bg-black px-8">
+        <h1 className="text-center text-4xl font-bold text-red-600 text-balance md:text-5xl">{'УЖИВИТИК 666'}</h1>
+        <p className="text-center text-lg text-neutral-400 text-pretty">
+          Саша снялся в фильме Арсения. Карьера окончена. Это конец.
+        </p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="rounded-xl bg-red-700 px-8 py-4 text-xl font-bold text-white transition-colors hover:bg-red-600"
+        >
+          Начать заново
+        </button>
+      </main>
+    )
+  }
+
   // Смерть Саши: один из показателей упал до нуля
   if (dead) {
     return (
@@ -313,6 +406,8 @@ export function Game() {
         reputation={stats.reputation}
         money={stats.money}
       />
+
+      {activeEvent && <EventModal event={activeEvent} onResolve={handleEventResolve} />}
 
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} onCode={handleCheatCode} />}
     </main>

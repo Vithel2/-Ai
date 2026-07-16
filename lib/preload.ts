@@ -38,6 +38,16 @@ const IMAGES = [
   "buy-23-emperor.png",
   "buy-24-protests.png",
   "buy-zlata-site.png",
+  "event-1-timofey.jpg",
+  "event-2-parasha.jpg",
+  "event-3-dianka.jpg",
+  "event-4-rat.jpg",
+  "event-5-zlata.jpg",
+  "event-6-krysyatinovo.jpg",
+  "event-7-uzhivitik.jpg",
+  "event-8-castle.jpg",
+  "event-9-lamp.jpg",
+  "event-10-zhopa.jpg",
   "indicator.png",
   "sasha.png",
 ].map((f) => `/img/${f}`)
@@ -73,7 +83,7 @@ const SFX = [
   "zlata",
 ].map((f) => `/sfx/${f}.mp3`)
 
-const MUSIC = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => `/music/track-${n}.mp3`)
+const MUSIC = [...[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `/music/track-${n}.mp3`), "/music/school-battle.mp3"]
 
 let started = false
 
