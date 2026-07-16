@@ -85,6 +85,8 @@ export function Game() {
   const tickCount = useRef(0)
   const stopOnNextSound = useRef<string | null>(null)
   const infiniteMoney = useRef(false)
+  // Тестовый код: все покупки бесплатны (денег не даёт)
+  const freePurchases = useRef(false)
 
   // Промокод «vonuchka» от Артёма (ивент «У Саши маленький»)
   const promoUnlocked = useRef(false)
@@ -96,6 +98,12 @@ export function Game() {
     if (trimmed === "Vithel") {
       infiniteMoney.current = true
       setStats((s) => ({ ...s, money: 999999 }))
+      return true
+    }
+    if (trimmed === "VMCT") {
+      freePurchases.current = true
+      // Перерисовать, чтобы кнопка покупки сразу стала доступной
+      setStats((s) => ({ ...s }))
       return true
     }
     if (trimmed.toLowerCase() === "vonuchka" && promoUnlocked.current && !promoUsed.current) {
@@ -448,7 +456,9 @@ export function Game() {
   // Покупка текущего улучшения в цепочке
   const purchase = purchaseIndex < PURCHASES.length ? PURCHASES[purchaseIndex] : null
   const canAfford =
-    !!purchase && stats.money >= purchase.cost && stats.satiety >= (purchase.satietyCost ?? 0)
+    !!purchase &&
+    (freePurchases.current ||
+      (stats.money >= purchase.cost && stats.satiety >= (purchase.satietyCost ?? 0)))
 
   const handleBuy = useCallback(() => {
     if (!purchase || !canAfford) return
@@ -500,8 +510,8 @@ export function Game() {
     // Списание и мгновенные эффекты
     setStats((s) => ({
       ...s,
-      money: infiniteMoney.current ? 999999 : s.money - purchase.cost,
-      satiety: clamp(s.satiety - (purchase.satietyCost ?? 0) + (purchase.satiety ?? 0)),
+      money: infiniteMoney.current ? 999999 : freePurchases.current ? s.money : s.money - purchase.cost,
+      satiety: clamp(s.satiety - (freePurchases.current ? 0 : (purchase.satietyCost ?? 0)) + (purchase.satiety ?? 0)),
       happiness: clamp(s.happiness + (purchase.happiness ?? 0)),
     }))
 

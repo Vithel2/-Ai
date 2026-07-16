@@ -153,7 +153,8 @@ export const PURCHASES: Purchase[] = [
   {
     id: "rename",
     img: "/img/buy-17-rename.png",
-    cost: 650,
+    // На картинке написано «цена=275$» — цена должна совпадать
+    cost: 275,
     sounds: ["slide-change"],
   },
   {
