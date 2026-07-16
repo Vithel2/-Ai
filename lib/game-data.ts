@@ -134,7 +134,8 @@ export const PURCHASES: Purchase[] = [
   {
     id: "zlata-site",
     img: "/img/buy-zlata-site.png",
-    cost: 350,
+    // На картинке написано «цена 80$» — цена должна совпадать
+    cost: 80,
     incomePerSec: 10,
     sounds: ["buy-upgrade"],
   },
