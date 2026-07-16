@@ -10,6 +10,7 @@ interface MainScreenProps {
   /** Проблемы со стабильностью — кнопка города подсвечивается */
   cityDanger: boolean
   onOpenCity: () => void
+  onOpenBusiness: () => void
 }
 
 export function MainScreen({
@@ -19,6 +20,7 @@ export function MainScreen({
   cityUnlocked,
   cityDanger,
   onOpenCity,
+  onOpenBusiness,
 }: MainScreenProps) {
   const [pressed, setPressed] = useState(false)
 
@@ -45,6 +47,17 @@ export function MainScreen({
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/img/btn-settings.png" alt="Настройки" className="h-auto w-full drop-shadow-lg" />
+      </button>
+
+      {/* Кнопка Решение бизнеса — под настройками, левый верхний угол */}
+      <button
+        type="button"
+        onClick={onOpenBusiness}
+        className="absolute top-44 left-8 z-20 w-40 transition-transform hover:scale-105 active:scale-95 md:top-52 md:w-48 lg:top-56 lg:w-52 short:top-24 short:left-4 short:w-24"
+        aria-label="Открыть решения бизнеса"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/img/business-main.png" alt="Решение бизнеса" className="h-auto w-full drop-shadow-lg" />
       </button>
 
       {/* Кнопка Город (стабильность и армия) — над кнопкой Решения.

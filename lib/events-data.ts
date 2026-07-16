@@ -164,7 +164,7 @@ export const GAME_EVENTS: GameEvent[] = [
         label: "Позвонить Тимерхуну",
         outcomes: [
           { chance: 0.4, text: "У Саши больше! Тимерхун повержен. +50 репутации", effects: { reputation: 50 } },
-          { chance: 0.6, text: "У Тимерхуна больше... Унижение. -25 репутации", effects: { reputation: -25 } },
+          { chance: 0.6, text: "У Тимерхуна бо��ьше... Унижение. -25 репутации", effects: { reputation: -25 } },
         ],
       },
       {
@@ -205,6 +205,23 @@ export const GAME_EVENTS: GameEvent[] = [
       {
         label: "Купить Бурику дилдо за 20$",
         outcomes: [{ chance: 1, text: "Бурик счастлив, все впечатлены. -20$, +25 репутации", effects: { money: -20, reputation: 25 } }],
+      },
+    ],
+  },
+  {
+    id: "homework",
+    img: "/img/event-14-homework.png",
+    alt: "Ты не сделал домашку и Тимерхун спрашивает дз",
+    // Школьная тема: после «Запустить крыс в школу»
+    condition: ({ purchased }) => purchased.has("rats-school"),
+    choices: [
+      {
+        label: "Подрочить",
+        outcomes: [{ chance: 1, text: "Класс в шоке, но уважение заработано. +35 репутации", effects: { reputation: 35 } }],
+      },
+      {
+        label: "Остаться после уроков",
+        outcomes: [{ chance: 1, text: "Скучно, но спокойно. +35 счастья", effects: { happiness: 35 } }],
       },
     ],
   },

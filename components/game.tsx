@@ -7,6 +7,7 @@ import { DecisionsScreen, type ActionDef } from "@/components/decisions-screen"
 import { SettingsModal } from "@/components/settings-modal"
 import { EventModal } from "@/components/event-modal"
 import { CityScreen, RAT_UPKEEP_PER_RAT, type CityState } from "@/components/city-screen"
+import { BusinessScreen } from "@/components/business-screen"
 import { PURCHASES } from "@/lib/game-data"
 import { GAME_EVENTS, type EventOutcome, type GameEvent } from "@/lib/events-data"
 import { preloadAssets } from "@/lib/preload"
@@ -30,7 +31,7 @@ interface TempBonus {
 const clamp = (v: number, min = 0, max = 100) => Math.min(max, Math.max(min, v))
 
 export function Game() {
-  const [screen, setScreen] = useState<"main" | "decisions" | "city">("main")
+  const [screen, setScreen] = useState<"main" | "decisions" | "city" | "business">("main")
   const [stats, setStats] = useState<Stats>({
     happiness: 35,
     satiety: 35,
@@ -613,7 +614,10 @@ export function Game() {
           cityUnlocked={cityUnlocked}
           cityDanger={cityUnlocked && (city.protest !== null || city.stability < 40)}
           onOpenCity={() => setScreen("city")}
+          onOpenBusiness={() => setScreen("business")}
         />
+      ) : screen === "business" ? (
+        <BusinessScreen onExit={() => setScreen("main")} />
       ) : screen === "city" ? (
         <CityScreen
           city={city}
