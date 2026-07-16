@@ -157,7 +157,8 @@ export const GAME_EVENTS: GameEvent[] = [
     id: "zhopa",
     img: "/img/event-10-zhopa.jpg",
     alt: "Арсений хочет снять ЖОПА ПОЛНАЯ 2",
-    condition: ({ lampFailed, eventsDone }) => lampFailed && eventsDone.has("lamp"),
+    // Показывается сразу после покупки «Задавить протесты Анджеликой»
+    condition: ({ purchased }) => purchased.has("protests"),
     choices: [{ label: "ДА", outcomes: [{ chance: 1, text: "", finalEnding: true }] }],
   },
 ]

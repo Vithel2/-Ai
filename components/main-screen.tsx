@@ -7,10 +7,19 @@ interface MainScreenProps {
   onOpenDecisions: () => void
   onOpenSettings: () => void
   cityUnlocked: boolean
+  /** Проблемы со стабильностью — кнопка города подсвечивается */
+  cityDanger: boolean
   onOpenCity: () => void
 }
 
-export function MainScreen({ onSashaClick, onOpenDecisions, onOpenSettings, cityUnlocked, onOpenCity }: MainScreenProps) {
+export function MainScreen({
+  onSashaClick,
+  onOpenDecisions,
+  onOpenSettings,
+  cityUnlocked,
+  cityDanger,
+  onOpenCity,
+}: MainScreenProps) {
   const [pressed, setPressed] = useState(false)
 
   function handleSasha() {
@@ -44,12 +53,14 @@ export function MainScreen({ onSashaClick, onOpenDecisions, onOpenSettings, city
         type="button"
         onClick={cityUnlocked ? onOpenCity : undefined}
         disabled={!cityUnlocked}
-        className={`absolute bottom-44 left-8 z-20 w-32 transition-transform md:bottom-52 md:w-36 lg:bottom-60 lg:w-40 ${
+        className={`absolute bottom-52 left-8 z-20 w-44 transition-transform md:bottom-64 md:w-52 lg:bottom-72 lg:w-60 ${
           cityUnlocked ? "hover:scale-105 active:scale-95" : "cursor-not-allowed opacity-50 grayscale"
-        }`}
+        } ${cityDanger ? "animate-pulse rounded-3xl ring-4 ring-red-500 shadow-[0_0_30px_rgba(239,68,68,0.9)]" : ""}`}
         aria-label={
           cityUnlocked
-            ? "Открыть решения стабильности и армии"
+            ? cityDanger
+              ? "Открыть решения стабильности и армии. Внимание: проблемы со стабильностью!"
+              : "Открыть решения стабильности и армии"
             : "Решения стабильности и армии: откроется после захвата Давлекановки"
         }
       >

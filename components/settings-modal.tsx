@@ -6,13 +6,18 @@ import { getMusicVolume, getSfxVolume, setMusicVolume, setSfxVolume } from "@/li
 interface SettingsModalProps {
   onClose: () => void
   onCode?: (code: string) => boolean
+  onResetProgress?: () => void
 }
 
-export function SettingsModal({ onClose, onCode }: SettingsModalProps) {
+export function SettingsModal({ onClose, onCode, onResetProgress }: SettingsModalProps) {
   const [music, setMusic] = useState(() => Math.round(getMusicVolume() * 100))
   const [sfx, setSfx] = useState(() => Math.round(getSfxVolume() * 100))
   const [code, setCode] = useState("")
   const [codeStatus, setCodeStatus] = useState<"idle" | "ok" | "bad">("idle")
+  // Защита от случайного сброса: подтверждение + удержание кнопки не требуется,
+  // но нужно поставить галочку и нажать отдельную красную кнопку
+  const [confirmingReset, setConfirmingReset] = useState(false)
+  const [resetChecked, setResetChecked] = useState(false)
 
   function submitCode() {
     if (!code.trim()) return
@@ -101,6 +106,55 @@ export function SettingsModal({ onClose, onCode }: SettingsModalProps) {
           {codeStatus === "ok" && <p className="mt-2 text-sm font-bold text-green-400">Код принят!</p>}
           {codeStatus === "bad" && <p className="mt-2 text-sm font-bold text-red-400">Неверный код</p>}
         </div>
+
+        {onResetProgress && (
+          <div className="mb-6 rounded-xl border-2 border-red-900 bg-neutral-900 p-3">
+            {!confirmingReset ? (
+              <button
+                type="button"
+                onClick={() => setConfirmingReset(true)}
+                className="w-full rounded-lg bg-neutral-700 py-2 font-bold text-red-400 transition-colors hover:bg-neutral-600"
+              >
+                Сбросить весь прогресс...
+              </button>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <p className="text-center text-sm font-bold text-red-400 text-pretty">
+                  Весь прогресс будет удалён навсегда! Это нельзя отменить.
+                </p>
+                <label className="flex items-center justify-center gap-2 text-sm text-white">
+                  <input
+                    type="checkbox"
+                    checked={resetChecked}
+                    onChange={(e) => setResetChecked(e.target.checked)}
+                    className="h-4 w-4 accent-red-600"
+                  />
+                  Я понимаю, что прогресс пропадёт
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfirmingReset(false)
+                      setResetChecked(false)
+                    }}
+                    className="flex-1 rounded-lg bg-neutral-600 py-2 font-bold text-white transition-colors hover:bg-neutral-500"
+                  >
+                    Отмена
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => resetChecked && onResetProgress()}
+                    disabled={!resetChecked}
+                    className="flex-1 rounded-lg bg-red-700 py-2 font-bold text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    СБРОСИТЬ
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <button
           type="button"

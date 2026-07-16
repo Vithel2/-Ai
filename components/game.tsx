@@ -211,7 +211,7 @@ export function Game() {
             return { ...c, protest: { ...c.protest, strength } }
           }
           // Мирное время: стабильность постепенно падает сама
-          const stability = Math.max(0, c.stability - 0.15)
+          const stability = Math.max(0, c.stability - 0.35)
           if (stability < 20) {
             // Начался протест: стабильность скрывается, сила протеста растёт с малого
             return { ...c, stability, protest: { strength: 5, fastUntil: 0 } }
@@ -443,7 +443,7 @@ export function Game() {
       stopOnNextSound.current = null
     }
 
-    // Звуки покупки: обрезаем по лимиту (по умолчанию 4 сек), "метаться крысами" — потише
+    // Звуки покупки: обрезаем по лимиту (по умолчанию 4 сек), "метаться крысами" — п��тише
     const maxSec = purchase.soundMaxSeconds ?? 4
     const playBuySound = (name: string) =>
       playSfxLimited(
@@ -611,6 +611,7 @@ export function Game() {
           onOpenDecisions={() => setScreen("decisions")}
           onOpenSettings={() => setShowSettings(true)}
           cityUnlocked={cityUnlocked}
+          cityDanger={cityUnlocked && (city.protest !== null || city.stability < 40)}
           onOpenCity={() => setScreen("city")}
         />
       ) : screen === "city" ? (
@@ -648,7 +649,16 @@ export function Game() {
 
       {activeEvent && <EventModal event={activeEvent} onResolve={handleEventResolve} />}
 
-      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} onCode={handleCheatCode} />}
+      {showSettings && (
+        <SettingsModal
+          onClose={() => setShowSettings(false)}
+          onCode={handleCheatCode}
+          onResetProgress={() => {
+            clearSave()
+            window.location.reload()
+          }}
+        />
+      )}
     </main>
   )
 }
