@@ -165,7 +165,7 @@ export const GAME_EVENTS: GameEvent[] = [
       {
         label: "Позвонить Тимерхуну",
         outcomes: [
-          { chance: 0.4, text: "У Саши больше! Тимерхун повержен. +50 репутации", effects: { reputation: 50 } },
+          { chance: 0.4, text: "У Саши больше! Тиме��хун повержен. +50 репутации", effects: { reputation: 50 } },
           { chance: 0.6, text: "У Тимерхуна больше... Унижение. -25 репутации", effects: { reputation: -25 } },
         ],
       },
@@ -265,8 +265,8 @@ export const GAME_EVENTS: GameEvent[] = [
     id: "zhopa",
     img: "/img/event-10-zhopa.jpg",
     alt: "Арсений хочет снять ЖОПА ПОЛНАЯ 2",
-    // Показывается сразу после покупки «Задавить протесты Анджеликой»
-    condition: ({ purchased }) => purchased.has("protests"),
+    // Показывается сразу после покупки «ИМПЕРИЯ МУСОРА» (последняя, 30-я покупка)
+    condition: ({ purchased }) => purchased.has("trash-empire"),
     choices: [{ label: "ДА", outcomes: [{ chance: 1, text: "", finalEnding: true }] }],
   },
 ]
