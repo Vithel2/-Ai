@@ -219,4 +219,50 @@ export const PURCHASES: Purchase[] = [
     reputation: 15,
     sounds: ["huge-fall"],
   },
+  {
+    id: "lavrushka",
+    img: "/img/buy-25-lavrushka.png",
+    // На картинке написано «цена 500$»
+    cost: 500,
+    reputation: 50,
+    sounds: ["buy-upgrade"],
+  },
+  {
+    id: "zlata-breakup",
+    img: "/img/buy-26-breakup.png",
+    // На картинке написано «цена=250$», -25 репутации
+    cost: 250,
+    reputation: -25,
+    sounds: ["surprise"],
+  },
+  {
+    id: "statue",
+    img: "/img/buy-27-statue.png",
+    // На картинке написано «цена=750$»
+    cost: 750,
+    reputation: 50,
+    sounds: ["build"],
+  },
+  {
+    id: "artem-date",
+    img: "/img/buy-28-artem-date.png",
+    // На картинке написано «цена=800$»
+    cost: 800,
+    sounds: ["buy-upgrade"],
+  },
+  {
+    id: "artem-sleep",
+    img: "/img/buy-29-artem-sleep.png",
+    // На картинке написано «цена=999$»
+    cost: 999,
+    sounds: ["laugh"],
+  },
+  {
+    id: "trash-empire",
+    img: "/img/buy-30-empire.png",
+    // На картинке написано «цена=1500$»
+    cost: 1500,
+    reputation: 999,
+    sounds: ["protests"],
+  },
 ]

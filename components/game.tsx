@@ -5,6 +5,7 @@ import { IndicatorPanel } from "@/components/indicator-panel"
 import { MainScreen } from "@/components/main-screen"
 import { DecisionsScreen, type ActionDef } from "@/components/decisions-screen"
 import { SettingsModal } from "@/components/settings-modal"
+import { TutorialModal } from "@/components/tutorial-modal"
 import { EventModal } from "@/components/event-modal"
 import { CityScreen, RAT_UPKEEP_PER_RAT, type CityState } from "@/components/city-screen"
 import { BusinessScreen } from "@/components/business-screen"
@@ -49,6 +50,8 @@ export function Game() {
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({})
   const [showSettings, setShowSettings] = useState(false)
   const [dead, setDead] = useState(false)
+  // Обучение при первом запуске (показывается один раз)
+  const [showTutorial, setShowTutorial] = useState(false)
 
   // Город: стабильность, армия крыс, протесты (открывается после захвата Давлекановки)
   const [city, setCity] = useState<CityState>({ stability: 100, rats: 0, protest: null })
@@ -65,7 +68,7 @@ export function Game() {
 
   // Пока открыты настройки, ивент или концовка — игра на паузе
   const pausedRef = useRef(false)
-  pausedRef.current = showSettings || dead || !!activeEvent || !!ending
+  pausedRef.current = showSettings || dead || !!activeEvent || !!ending || showTutorial
 
   // Актуальный прогресс покупок для проверки условий ивентов внутри цикла
   const purchaseIndexRef = useRef(0)
@@ -153,8 +156,25 @@ export function Game() {
       setPurchaseIndex(save.purchaseIndex)
       setUnlocked(save.unlocked)
       if (save.city) setCity(save.city)
+    } else {
+      // Первый запуск без сохранения — показываем обучение (один раз)
+      try {
+        if (!localStorage.getItem("sasha-porasha-tutorial-done")) setShowTutorial(true)
+      } catch {
+        // хранилище недоступно — обучение просто не показываем повторно
+        setShowTutorial(true)
+      }
     }
     setRestored(true)
+  }, [])
+
+  const handleTutorialClose = useCallback(() => {
+    setShowTutorial(false)
+    try {
+      localStorage.setItem("sasha-porasha-tutorial-done", "1")
+    } catch {
+      // ignore
+    }
   }, [])
 
   // Автосохранение прогресса
@@ -417,7 +437,8 @@ export function Game() {
   )
 
   const addReputation = useCallback((amount: number) => {
-    playSfx("level-up")
+    // Звук нового уровня — только при росте репутации
+    if (amount > 0) playSfx("level-up")
     setStats((s) => ({ ...s, reputation: s.reputation + amount }))
   }, [])
 
@@ -692,6 +713,8 @@ export function Game() {
       />
 
       {activeEvent && <EventModal event={activeEvent} onResolve={handleEventResolve} />}
+
+      {showTutorial && <TutorialModal onClose={handleTutorialClose} />}
 
       {/* Тестовый оверлей VMCT2: реальное списание денег с прокачек */}
       {priceLog && (
