@@ -265,8 +265,8 @@ export const GAME_EVENTS: GameEvent[] = [
     id: "zhopa",
     img: "/img/event-10-zhopa.jpg",
     alt: "Арсений хочет снять ЖОПА ПОЛНАЯ 2",
-    // Показывается сразу после покупки «Задавить протесты Анджеликой»
-    condition: ({ purchased }) => purchased.has("protests"),
+    // Показывается сразу после последней покупки «Империя мусора» (№30)
+    condition: ({ purchased }) => purchased.has("empire"),
     choices: [{ label: "ДА", outcomes: [{ chance: 1, text: "", finalEnding: true }] }],
   },
 ]

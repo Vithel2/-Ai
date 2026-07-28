@@ -8,8 +8,10 @@ export default function manifest(): MetadataRoute.Manifest {
     id: "/",
     start_url: "/",
     scope: "/",
-    display: "standalone",
-    orientation: "any",
+    // fullscreen — прячет системную плашку со временем/уведомлениями в установленном PWA
+    display: "fullscreen",
+    // Игра горизонтальная — фиксируем ориентацию
+    orientation: "landscape",
     background_color: "#1a1a1a",
     theme_color: "#1a1a1a",
     lang: "ru",

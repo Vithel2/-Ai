@@ -24,6 +24,8 @@ export interface SaveData {
   }
   /** Промокод «vonuchka» от Артёма: получен и/или уже активирован */
   promo?: { unlocked: boolean; used: boolean }
+  /** Активные инвестиции бизнеса: сколько секунд осталось до выплаты */
+  investments?: Record<string, number>
 }
 
 const KEY = "sasha-porasha-save-v1"

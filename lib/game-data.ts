@@ -34,6 +34,7 @@ export const PURCHASES: Purchase[] = [
     img: "/img/buy-01-house.png",
     cost: 15,
     satietyCost: 15,
+    happiness: 15,
     happinessPer3Sec: 1,
     sounds: ["build"],
   },
@@ -218,5 +219,53 @@ export const PURCHASES: Purchase[] = [
     cost: 300,
     reputation: 15,
     sounds: ["huge-fall"],
+  },
+  {
+    id: "lavrushka",
+    img: "/img/buy-25-lavrushka.png",
+    // На картинке написано «цена 500$»
+    cost: 500,
+    reputation: 50,
+    sounds: ["buy-upgrade"],
+  },
+  {
+    id: "breakup-zlata",
+    img: "/img/buy-26-breakup-zlata.png",
+    // На картинке написано «цена=250$», отнимает 25 репутации
+    cost: 250,
+    reputation: -25,
+    sounds: ["zlata"],
+  },
+  {
+    id: "statue",
+    img: "/img/buy-27-statue.png",
+    // На картинке написано «цена=750$»
+    cost: 750,
+    reputation: 50,
+    sounds: ["build"],
+  },
+  {
+    id: "date-artem",
+    img: "/img/buy-28-date-artem.png",
+    // На картинке написано «цена=800$»
+    cost: 800,
+    sounds: ["surprise"],
+  },
+  {
+    id: "sleep-artem",
+    img: "/img/buy-29-sleep-artem.png",
+    // На картинке написано «цена=999$»
+    cost: 999,
+    sounds: ["laugh"],
+  },
+  {
+    id: "empire",
+    img: "/img/buy-30-empire.png",
+    // На картинке написано «цена=1500$» — финальная покупка
+    cost: 1500,
+    reputation: 999,
+    sounds: ["war-shootout"],
+    soundMaxSeconds: 8,
+    soundStartAt: 2.8,
   },
 ]
