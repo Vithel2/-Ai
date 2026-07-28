@@ -1,7 +1,0 @@
-1:"$Sreact.fragment"
-2:I[10968,["/_next/static/chunks/3y6gdegqkgve0.js","/_next/static/chunks/3qsh32swnofn4.js","/_next/static/chunks/42q7s0cvq03c5.js"],"RotateOverlay"]
-3:I[71399,["/_next/static/chunks/3y6gdegqkgve0.js","/_next/static/chunks/3qsh32swnofn4.js","/_next/static/chunks/42q7s0cvq03c5.js"],"Game"]
-4:I[50129,["/_next/static/chunks/3y6gdegqkgve0.js","/_next/static/chunks/3qsh32swnofn4.js"],"OutletBoundary"]
-5:"$Sreact.suspense"
-0:{"rsc":["$","$1","c",{"children":[[["$","$L2",null,{}],["$","$L3",null,{}]],[["$","script","script-0",{"src":"/_next/static/chunks/42q7s0cvq03c5.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"1juK_HERN78nBh46Qqu9t"}
-6:null

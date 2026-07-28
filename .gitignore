@@ -1,0 +1,25 @@
+# Зависимости
+node_modules/
+
+# Сборки Next.js
+.next/
+out/
+
+# Сборки Android (создаются заново командой android:sync)
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/.idea/
+android/app/release/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Служебное
+.DS_Store
+.env*.local
+*.log
