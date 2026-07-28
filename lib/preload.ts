@@ -1,22 +1,31 @@
-// Тихая фоновая предзагрузка всех файлов игры,
-// чтобы звуки и картинки не тормозили при первом использовании
+// Тихая фоновая предзагрузка файлов игры.
+// Порядок важен: сперва то, что видно на первом экране, потом всё остальное.
+// Музыка НЕ предзагружается — треки весят десятки мегабайт и стримятся по мере игры.
 
-const IMAGES = [
-  "action-bath.png",
-  "action-fart-upgraded.png",
-  "action-fart.png",
-  "action-pool.png",
-  "action-rats.png",
-  "action-zlata.png",
-  "bg-decisions.png",
-  "bg-emperor.jpg",
+// Первый экран и первые действия — нужны сразу
+const IMAGES_CRITICAL = [
   "bg-main.jpg",
-  "btn-decisions.png",
-  "btn-exit.png",
+  "sasha.png",
+  "indicator.png",
   "btn-settings.png",
+  "btn-decisions.png",
+  "business-main.png",
+  "action-fart.png",
+  "action-bath.png",
+  "bg-decisions.png",
   "buy-01-house.png",
   "buy-02-bag.png",
   "buy-03-puddle.png",
+]
+
+// Всё остальное — можно догрузить спокойно в фоне
+const IMAGES_REST = [
+  "action-fart-upgraded.png",
+  "action-pool.png",
+  "action-rats.png",
+  "action-zlata.png",
+  "bg-emperor.jpg",
+  "btn-exit.png",
   "buy-04-sell.png",
   "buy-06-desk.png",
   "buy-07-throw.png",
@@ -64,23 +73,20 @@ const IMAGES = [
   "event-13-idea.png",
   "event-14-homework.png",
   "event-15-small.png",
-  "business-main.png",
   "business-bg.png",
-  "indicator.png",
-  "sasha.png",
-].map((f) => `/img/${f}`)
+]
 
-const SFX = [
+// Звуки первых действий
+const SFX_CRITICAL = ["click", "fart-long", "swim", "buy-upgrade"]
+
+const SFX_REST = [
   "build",
   "buy-business",
   "buy-factory",
-  "buy-upgrade",
-  "click",
   "court-hammer",
   "diarrhea",
   "eat-rats",
   "fart-lineup",
-  "fart-long",
   "fart-meeting",
   "huge-fall",
   "jackhammer",
@@ -93,35 +99,58 @@ const SFX = [
   "rat-squeak",
   "slide-change",
   "surprise",
-  "swim",
   "throw-rats",
   "throw",
   "trash-bag",
   "war-shootout",
   "zlata",
-].map((f) => `/sfx/${f}.mp3`)
-
-const MUSIC = [...[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `/music/track-${n}.mp3`), "/music/school-battle.mp3"]
+]
 
 let started = false
+
+/** Грузит список файлов пачками, чтобы не душить сеть. Вызывает done по завершении. */
+function loadQueue(files: string[], concurrency: number, done?: () => void) {
+  let index = 0
+  let active = 0
+
+  const next = () => {
+    if (index >= files.length) {
+      if (active === 0) done?.()
+      return
+    }
+    const url = files[index++]
+    active++
+    fetch(url)
+      .then((res) => res.blob())
+      .catch(() => {})
+      .finally(() => {
+        active--
+        next()
+      })
+  }
+
+  for (let i = 0; i < concurrency; i++) next()
+}
 
 export function preloadAssets() {
   if (started || typeof window === "undefined") return
   started = true
 
-  const files = [...IMAGES, ...SFX, ...MUSIC]
-  // Загружаем по несколько файлов за раз, чтобы не душить сеть
-  let index = 0
-  const CONCURRENCY = 4
+  // Уважаем экономию трафика и очень медленные сети — тогда ничего не тянем заранее
+  const conn = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection
+  if (conn?.saveData || conn?.effectiveType === "slow-2g" || conn?.effectiveType === "2g") return
 
-  const next = () => {
-    if (index >= files.length) return
-    const url = files[index++]
-    fetch(url)
-      .then((res) => res.blob())
-      .catch(() => {})
-      .finally(next)
-  }
+  const critical = [
+    ...IMAGES_CRITICAL.map((f) => `/img/${f}`),
+    ...SFX_CRITICAL.map((f) => `/sfx/${f}.mp3`),
+  ]
+  const rest = [...IMAGES_REST.map((f) => `/img/${f}`), ...SFX_REST.map((f) => `/sfx/${f}.mp3`)]
 
-  for (let i = 0; i < CONCURRENCY; i++) next()
+  // Сначала первый экран, потом в простое — всё остальное
+  loadQueue(critical, 4, () => {
+    const idle = (window as Window & { requestIdleCallback?: (cb: () => void) => void }).requestIdleCallback
+    const start = () => loadQueue(rest, 3)
+    if (idle) idle(start)
+    else setTimeout(start, 1500)
+  })
 }

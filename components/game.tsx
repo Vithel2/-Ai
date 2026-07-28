@@ -6,7 +6,14 @@ import { MainScreen } from "@/components/main-screen"
 import { DecisionsScreen, type ActionDef } from "@/components/decisions-screen"
 import { SettingsModal } from "@/components/settings-modal"
 import { EventModal } from "@/components/event-modal"
-import { CityScreen, RAT_UPKEEP_PER_RAT, type CityState } from "@/components/city-screen"
+import {
+  CityScreen,
+  RAT_UPKEEP_PER_RAT,
+  RAT_PATROL_MAX,
+  RAT_PATROL_PER_RAT,
+  STABILITY_DECAY_PER_SEC,
+  type CityState,
+} from "@/components/city-screen"
 import { BusinessScreen } from "@/components/business-screen"
 import { PURCHASES } from "@/lib/game-data"
 import { GAME_EVENTS, type EventOutcome, type GameEvent } from "@/lib/events-data"
@@ -30,12 +37,13 @@ interface TempBonus {
 
 const clamp = (v: number, min = 0, max = 100) => Math.min(max, Math.max(min, v))
 
+
 export function Game() {
   const [screen, setScreen] = useState<"main" | "decisions" | "city" | "business">("main")
   const [stats, setStats] = useState<Stats>({
-    happiness: 35,
-    satiety: 35,
-    water: 35,
+    happiness: 50,
+    satiety: 50,
+    water: 50,
     reputation: 0,
     money: 0,
   })
@@ -72,6 +80,8 @@ export function Game() {
   purchaseIndexRef.current = purchaseIndex
   const reputationRef = useRef(0)
   reputationRef.current = stats.reputation
+  const moneyRef = useRef(0)
+  moneyRef.current = stats.money
 
   // Город открыт после захвата Давлекановки
   const captureIndex = PURCHASES.findIndex((p) => p.id === "capture")
@@ -149,6 +159,9 @@ export function Game() {
       happinessPer3Sec.current = save.happinessPer3Sec
       promoUnlocked.current = save.promo?.unlocked ?? false
       promoUsed.current = save.promo?.used ?? false
+      // Временные бонусы: просроченные отбрасываем, остальные продолжают тикать
+      tempBonuses.current = (save.tempBonuses ?? []).filter((b) => b.until > Date.now())
+      if (save.cooldowns) setCooldowns(save.cooldowns)
       setStats(save.stats)
       setPurchaseIndex(save.purchaseIndex)
       setUnlocked(save.unlocked)
@@ -170,8 +183,10 @@ export function Game() {
       happinessPer3Sec: happinessPer3Sec.current,
       city,
       promo: { unlocked: promoUnlocked.current, used: promoUsed.current },
+      tempBonuses: tempBonuses.current,
+      cooldowns,
     })
-  }, [restored, stats, purchaseIndex, unlocked, dead, ending, city])
+  }, [restored, stats, purchaseIndex, unlocked, dead, ending, city, cooldowns])
 
   // Смерть или концовка — сохранение стирается, игра начинается заново
   useEffect(() => {
@@ -224,31 +239,31 @@ export function Game() {
 
       // Город: стабильность падает, протесты расту��, содержание крыс списывается
       if (cityUnlockedRef.current) {
-        setCity((c) => {
-          if (c.protest) {
-            // Протест: сила растёт (быстрее после лёгкого подавления)
-            const fast = c.protest.fastUntil > now
-            const growth = fast ? 1.2 : 0.5
-            const strength = c.protest.strength + growth
-            // Сила выше 50% — с каждым приростом растёт шанс переворота
-            if (strength > 50 && Math.random() < (strength - 50) / 400) {
-              setEnding("coup")
-              return c
-            }
-            if (strength >= 100) {
-              setEnding("coup")
-              return c
-            }
-            return { ...c, protest: { ...c.protest, strength } }
+        // Решения принимаем снаружи апдейтера: он должен оставаться чистым,
+        // иначе в dev-режиме бросок кубика на переворот считается дважды
+        const c = cityRef.current
+        if (c.protest) {
+          // Протест: сила растёт (быстрее после лёгкого подавления)
+          const fast = c.protest.fastUntil > now
+          const strength = c.protest.strength + (fast ? 1.2 : 0.5)
+          // Сила выше 50% — с каждым приростом растёт шанс переворота
+          const coup = strength >= 100 || (strength > 50 && Math.random() < (strength - 50) / 400)
+          if (coup) {
+            setEnding("coup")
+          } else {
+            setCity((prev) => (prev.protest ? { ...prev, protest: { ...prev.protest, strength } } : prev))
           }
-          // Мирное время: стабильность постепенно падает сама
-          const stability = Math.max(0, c.stability - 0.6)
-          if (stability < 20) {
-            // Начался протест: стабильность скрывается, сила протеста растёт с малого
-            return { ...c, stability, protest: { strength: 5, fastUntil: 0 } }
-          }
-          return { ...c, stability }
-        })
+        } else {
+          // Мирное время: стабильность падает сама, но крысы-патрули её сдерживают
+          const patrol = 1 - Math.min(RAT_PATROL_MAX, c.rats * RAT_PATROL_PER_RAT)
+          const stability = Math.max(0, c.stability - STABILITY_DECAY_PER_SEC * patrol)
+          setCity((prev) => {
+            if (prev.protest) return prev
+            // Ниже 20% начинается протест: стабильность скрывается, сила растёт с малого
+            if (stability < 20) return { ...prev, stability, protest: { strength: 5, fastUntil: 0 } }
+            return { ...prev, stability }
+          })
+        }
       }
 
       setStats((s) => {
@@ -267,6 +282,16 @@ export function Game() {
           happiness += happinessPer3Sec.current
         }
 
+        // Слава: пока в городе спокойно, народ сам приносит Саше репутацию.
+        // Это единственный возобновляемый источник репутации — на нём и держится власть
+        if (cityUnlockedRef.current && tickCount.current % 3 === 0) {
+          const c = cityRef.current
+          if (!c.protest) {
+            if (c.stability >= 70) reputation += 2
+            else if (c.stability >= 40) reputation += 1
+          }
+        }
+
         // Временные бонусы
         for (const b of tempBonuses.current) {
           if (b.stat === "happiness") happiness += b.perSec
@@ -274,9 +299,9 @@ export function Game() {
         }
 
         // Постепенное снижение потребност��й (быстрее)
-        satiety -= 0.7
-        water -= 0.9
-        happiness -= 0.5
+        satiety -= 0.55
+        water -= 0.6
+        happiness -= 0.4
 
         // Если голод или жажда на нуле — счастье стремительно падает
         if (satiety <= 0 || water <= 0) happiness -= 1.5
@@ -344,14 +369,14 @@ export function Game() {
     if (reputationRef.current < 5) return
     playSfx("click", 0.8)
     spendReputation(5)
-    setCity((c) => ({ ...c, stability: Math.min(100, c.stability + 2) }))
+    setCity((c) => ({ ...c, stability: Math.min(100, c.stability + 4) }))
   }, [spendReputation])
 
   const handleBribe = useCallback(() => {
     if (reputationRef.current < 15) return
     playSfx("click", 0.8)
     spendReputation(15)
-    setCity((c) => ({ ...c, stability: Math.min(100, c.stability + 7) }))
+    setCity((c) => ({ ...c, stability: Math.min(100, c.stability + 10) }))
   }, [spendReputation])
 
   const handlePrison = useCallback(() => {
@@ -367,12 +392,11 @@ export function Game() {
   }, [])
 
   const handleHireRat = useCallback(() => {
-    setStats((s) => {
-      if (s.money < 5) return s
-      setCity((c) => ({ ...c, rats: c.rats + 1 }))
-      playSfx("click", 0.8)
-      return { ...s, money: infiniteMoney.current ? 999999 : s.money - 5 }
-    })
+    // Проверяем деньги снаружи апдейтера: иначе в dev-режиме крыса наймётся дважды
+    if (moneyRef.current < 5) return
+    playSfx("click", 0.8)
+    setCity((c) => ({ ...c, rats: c.rats + 1 }))
+    setStats((s) => ({ ...s, money: infiniteMoney.current ? 999999 : Math.max(0, s.money - 5) }))
   }, [])
 
   const handleSuppress = useCallback(
@@ -397,18 +421,18 @@ export function Game() {
         let strength = prev.protest.strength
         let fastUntil = prev.protest.fastUntil
         if (level === "light") {
-          strength -= 2
+          strength -= 8
           // Временно сила протеста растёт быстрее
           fastUntil = Date.now() + 15000
         } else if (level === "mid") {
-          strength -= 5
+          strength -= 20
         } else {
           strength = 0
         }
         if (strength <= 0) {
-          // Протест успешно подавлен — стабильность возвращается на 35%
+          // Протест успешно подавлен — стабильность возвращается на 50%
           playSfx("level-up")
-          return { stability: 35, rats, protest: null }
+          return { stability: 50, rats, protest: null }
         }
         return { ...prev, rats, protest: { strength, fastUntil } }
       })
