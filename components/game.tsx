@@ -8,7 +8,10 @@ import { SettingsModal } from "@/components/settings-modal"
 import { EventModal } from "@/components/event-modal"
 import { CityScreen, RAT_UPKEEP_PER_RAT, type CityState } from "@/components/city-screen"
 import { BusinessScreen } from "@/components/business-screen"
+import { SceneModal } from "@/components/scene-modal"
 import { PURCHASES } from "@/lib/game-data"
+import { INVESTMENTS } from "@/lib/business-data"
+import { SCENE_BUTTONS, PURCHASE_SCENES, type SceneButton } from "@/lib/scenes-data"
 import { GAME_EVENTS, type EventOutcome, type GameEvent } from "@/lib/events-data"
 import { preloadAssets } from "@/lib/preload"
 import { loadSave, writeSave, clearSave } from "@/lib/save"
@@ -47,6 +50,12 @@ export function Game() {
     emperor: false,
   })
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({})
+
+  // Инвестиции бизнеса: сколько секунд осталось до выплаты по каждому вкладу
+  const investTimersRef = useRef<Record<string, number>>({})
+  const [investTimers, setInvestTimers] = useState<Record<string, number>>({})
+  // Результат завершённого вклада — бейдж на карточке на несколько секунд
+  const [investResults, setInvestResults] = useState<Record<string, { text: string; ok: boolean }>>({})
   const [showSettings, setShowSettings] = useState(false)
   const [dead, setDead] = useState(false)
 
@@ -57,6 +66,10 @@ export function Game() {
 
   // Ивенты
   const [activeEvent, setActiveEvent] = useState<GameEvent | null>(null)
+  // Мини-сценка после покупки без ивента (фон класса + кнопка посередине)
+  const [activeScene, setActiveScene] = useState<SceneButton | null>(null)
+  // Флаг «покупка только что совершена» — чтобы сценка не всплывала при загрузке сейва
+  const justBoughtRef = useRef(false)
   const [ending, setEnding] = useState<"secret" | "final" | "coup" | null>(null)
   const eventsDone = useRef<Set<string>>(new Set())
   const lampFailed = useRef(false)
@@ -65,7 +78,7 @@ export function Game() {
 
   // Пока открыты настройки, ивент или концовка — игра на паузе
   const pausedRef = useRef(false)
-  pausedRef.current = showSettings || dead || !!activeEvent || !!ending
+  pausedRef.current = showSettings || dead || !!activeEvent || !!ending || !!activeScene
 
   // Актуальный прогресс покупок для проверки условий ивентов внутри цикла
   const purchaseIndexRef = useRef(0)
@@ -153,6 +166,10 @@ export function Game() {
       setPurchaseIndex(save.purchaseIndex)
       setUnlocked(save.unlocked)
       if (save.city) setCity(save.city)
+      if (save.investments) {
+        investTimersRef.current = save.investments
+        setInvestTimers(save.investments)
+      }
     }
     setRestored(true)
   }, [])
@@ -170,8 +187,9 @@ export function Game() {
       happinessPer3Sec: happinessPer3Sec.current,
       city,
       promo: { unlocked: promoUnlocked.current, used: promoUsed.current },
+      investments: investTimers,
     })
-  }, [restored, stats, purchaseIndex, unlocked, dead, ending, city])
+  }, [restored, stats, purchaseIndex, unlocked, dead, ending, city, investTimers])
 
   // Смерть или концовка — сохранение стирается, игра начинается заново
   useEffect(() => {
@@ -181,6 +199,8 @@ export function Game() {
   // Ивенты появляются сразу после нужной покупки (с небольшой паузой на звук покупки)
   useEffect(() => {
     if (!restored || purchaseIndex === 0) return
+    const justBought = justBoughtRef.current
+    justBoughtRef.current = false
     const purchased = new Set(PURCHASES.slice(0, purchaseIndex).map((p) => p.id))
     const ctx = {
       purchased,
@@ -194,10 +214,32 @@ export function Game() {
       const t = setTimeout(() => setActiveEvent(nextEvent), 1200)
       return () => clearTimeout(t)
     }
+
+    // Ивента нет — показываем мини-сценку, если она назначена этой покупке
+    if (justBought) {
+      const lastPurchase = PURCHASES[purchaseIndex - 1]
+      const sceneId = lastPurchase ? PURCHASE_SCENES[lastPurchase.id] : undefined
+      if (sceneId && SCENE_BUTTONS[sceneId]) {
+        const t = setTimeout(() => setActiveScene(SCENE_BUTTONS[sceneId]), 1200)
+        return () => clearTimeout(t)
+      }
+    }
   }, [purchaseIndex])
 
   // Игровой цикл: 1 тик в секунду
   useEffect(() => {
+    // Показать результат вклада на карточке на 6 секунд
+    const showInvestResult = (id: string, text: string, ok: boolean) => {
+      setInvestResults((r) => ({ ...r, [id]: { text, ok } }))
+      setTimeout(() => {
+        setInvestResults((r) => {
+          const rest = { ...r }
+          delete rest[id]
+          return rest
+        })
+      }, 6000)
+    }
+
     const interval = setInterval(() => {
       // В настройках или после смерти все процессы стоят
       if (pausedRef.current) return
@@ -230,7 +272,7 @@ export function Game() {
             const fast = c.protest.fastUntil > now
             const growth = fast ? 1.2 : 0.5
             const strength = c.protest.strength + growth
-            // Сила выше 50% — с каждым приростом растёт шанс переворота
+            // Сила выше 50% — с каждым приро��том растёт шанс переворота
             if (strength > 50 && Math.random() < (strength - 50) / 400) {
               setEnding("coup")
               return c
@@ -262,7 +304,7 @@ export function Game() {
           money -= cityRef.current.rats * RAT_UPKEEP_PER_RAT
         }
 
-        // Дом из мусора: +1 счастье каждые 3 секунды
+        // Дом из мусора: +1 с��астье каждые 3 секунды
         if (happinessPer3Sec.current > 0 && tickCount.current % 3 === 0) {
           happiness += happinessPer3Sec.current
         }
@@ -303,6 +345,40 @@ export function Game() {
         }
         return next
       })
+
+      // Инвестиции бизнеса: таймеры тикают, по завершении — выплата
+      if (Object.keys(investTimersRef.current).length > 0) {
+        const nextTimers: Record<string, number> = {}
+        const finished: string[] = []
+        for (const [id, sec] of Object.entries(investTimersRef.current)) {
+          if (sec > 1) nextTimers[id] = sec - 1
+          else finished.push(id)
+        }
+        investTimersRef.current = nextTimers
+        setInvestTimers(nextTimers)
+        for (const id of finished) {
+          const inv = INVESTMENTS.find((i) => i.id === id)
+          if (!inv) continue
+          const risky = inv.risky
+          if (risky) {
+            if (Math.random() < risky.chance) {
+              // Хайп: рискованный вклад окупился
+              playSfx("laugh")
+              setStats((s) => ({ ...s, money: infiniteMoney.current ? 999999 : s.money + risky.payout }))
+              showInvestResult(id, `+${risky.payout}$ ХАЙП!`, true)
+            } else {
+              // Провал: деньги сгорели, репутация упала
+              playSfx("huge-fall")
+              setStats((s) => ({ ...s, reputation: s.reputation - risky.failReputation }))
+              showInvestResult(id, `БАН! −${risky.failReputation} репутации`, false)
+            }
+          } else {
+            playSfx("buy-factory")
+            setStats((s) => ({ ...s, money: infiniteMoney.current ? 999999 : s.money + (inv.payout ?? 0) }))
+            showInvestResult(id, `+${inv.payout ?? 0}$`, true)
+          }
+        }
+      }
     }, 1000)
     return () => clearInterval(interval)
   }, [])
@@ -417,7 +493,8 @@ export function Game() {
   )
 
   const addReputation = useCallback((amount: number) => {
-    playSfx("level-up")
+    // Звук нового уровня только при росте репутации (при потере — тишина)
+    if (amount > 0) playSfx("level-up")
     setStats((s) => ({ ...s, reputation: s.reputation + amount }))
   }, [])
 
@@ -427,6 +504,17 @@ export function Game() {
     playSfx("click", 0.8)
     setStats((s) => ({ ...s, money: s.money + 1 }))
   }, [])
+
+  // Инвестиции бизнеса: вложить деньги, через N секунд придёт выплата
+  const handleInvest = (id: string) => {
+    const inv = INVESTMENTS.find((i) => i.id === id)
+    if (!inv || (investTimersRef.current[id] ?? 0) > 0) return
+    if (!infiniteMoney.current && stats.money < inv.cost) return
+    playSfx("buy-business")
+    setStats((s) => ({ ...s, money: infiniteMoney.current ? 999999 : Math.max(0, s.money - inv.cost) }))
+    investTimersRef.current = { ...investTimersRef.current, [id]: inv.durationSec }
+    setInvestTimers(investTimersRef.current)
+  }
 
   // Действия в решениях
   const handleAction = useCallback(
@@ -531,6 +619,7 @@ export function Game() {
     }))
 
     // Вид кнопки меняется на следующий
+    justBoughtRef.current = true
     setPurchaseIndex((i) => i + 1)
   }, [purchase, canAfford, addReputation])
 
@@ -657,7 +746,14 @@ export function Game() {
           onOpenBusiness={() => setScreen("business")}
         />
       ) : screen === "business" ? (
-        <BusinessScreen onExit={() => setScreen("main")} />
+        <BusinessScreen
+          onExit={() => setScreen("main")}
+          investments={INVESTMENTS}
+          timers={investTimers}
+          results={investResults}
+          money={stats.money}
+          onInvest={handleInvest}
+        />
       ) : screen === "city" ? (
         <CityScreen
           city={city}
@@ -690,6 +786,8 @@ export function Game() {
         reputation={stats.reputation}
         money={stats.money}
       />
+
+      {activeScene && <SceneModal scene={activeScene} onClose={() => setActiveScene(null)} />}
 
       {activeEvent && <EventModal event={activeEvent} onResolve={handleEventResolve} />}
 

@@ -41,20 +41,30 @@ export function DecisionsScreen({
       />
 
       {/* Действия — слева, две колонки со смещением как в оригинале.
-          Злата всегда в первой (левой) колонке, чтобы не прятаться за карточкой покупки */}
+          На больших экранах Злата в первой (левой) колонке, чтобы не прятаться за карточкой покупки.
+          На телефонах (short) Злата переезжает во вторую колонку — сетка 2×2, кнопки крупнее */}
       <div className="absolute top-4 left-4 z-20 flex items-start gap-5 short:top-2 short:left-2 short:gap-2">
         <div className="flex flex-col gap-1">
           {actions
             .filter((a, i) => i % 2 === 0 || a.id === "zlata")
             .map((action) => (
-              <ActionButton key={action.id} action={action} cd={cooldowns[action.id] ?? 0} onAction={onAction} />
+              <div key={action.id} className={action.id === "zlata" ? "short:hidden" : undefined}>
+                <ActionButton action={action} cd={cooldowns[action.id] ?? 0} onAction={onAction} />
+              </div>
             ))}
         </div>
-        <div className="mt-24 flex flex-col gap-1 short:mt-12">
+        <div className="mt-24 flex flex-col gap-1 short:mt-[4dvh]">
           {actions
             .filter((a, i) => i % 2 === 1 && a.id !== "zlata")
             .map((action) => (
               <ActionButton key={action.id} action={action} cd={cooldowns[action.id] ?? 0} onAction={onAction} />
+            ))}
+          {actions
+            .filter((a) => a.id === "zlata")
+            .map((action) => (
+              <div key={action.id} className="hidden short:block">
+                <ActionButton action={action} cd={cooldowns[action.id] ?? 0} onAction={onAction} />
+              </div>
             ))}
         </div>
       </div>
@@ -108,11 +118,11 @@ function ActionButton({
       <img
         src={action.img || "/placeholder.svg"}
         alt={action.label}
-        className="h-48 w-auto object-contain drop-shadow-lg md:h-56 lg:h-64 short:h-[23dvh]"
+        className="h-48 w-auto object-contain drop-shadow-lg md:h-56 lg:h-64 short:h-[42dvh]"
         style={onCd ? { filter: "brightness(0.4)" } : undefined}
       />
       {onCd && (
-        <span className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.9)]">
+        <span className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.9)] short:text-5xl">
           {cd}
         </span>
       )}
