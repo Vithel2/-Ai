@@ -28,6 +28,8 @@ export interface SaveData {
   tempBonuses?: { stat: "happiness" | "water"; perSec: number; until: number }[]
   /** Кулдауны кнопок нужд в секундах */
   cooldowns?: Record<string, number>
+  /** Уровни бизнесов по id — есть не во всех сейвах */
+  business?: Record<string, number>
 }
 
 const KEY = "sasha-porasha-save-v1"

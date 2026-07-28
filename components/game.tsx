@@ -15,6 +15,7 @@ import {
   type CityState,
 } from "@/components/city-screen"
 import { BusinessScreen } from "@/components/business-screen"
+import { BUSINESSES, nextLevelCost, totalBusinessIncome } from "@/lib/business-data"
 import { PURCHASES } from "@/lib/game-data"
 import { GAME_EVENTS, type EventOutcome, type GameEvent } from "@/lib/events-data"
 import { preloadAssets } from "@/lib/preload"
@@ -88,6 +89,11 @@ export function Game() {
   const cityUnlocked = captureIndex >= 0 && purchaseIndex > captureIndex
   const cityUnlockedRef = useRef(false)
   cityUnlockedRef.current = cityUnlocked
+
+  // Бизнесы: уровни по id, дают пассивный доход поверх прокачек
+  const [business, setBusiness] = useState<Record<string, number>>({})
+  const businessIncomeRef = useRef(0)
+  businessIncomeRef.current = totalBusinessIncome(business)
 
   const incomePerSec = useRef(0)
   const happinessPer3Sec = useRef(0)
@@ -166,6 +172,7 @@ export function Game() {
       setPurchaseIndex(save.purchaseIndex)
       setUnlocked(save.unlocked)
       if (save.city) setCity(save.city)
+      if (save.business) setBusiness(save.business)
     }
     setRestored(true)
   }, [])
@@ -185,8 +192,9 @@ export function Game() {
       promo: { unlocked: promoUnlocked.current, used: promoUsed.current },
       tempBonuses: tempBonuses.current,
       cooldowns,
+      business,
     })
-  }, [restored, stats, purchaseIndex, unlocked, dead, ending, city, cooldowns])
+  }, [restored, stats, purchaseIndex, unlocked, dead, ending, city, cooldowns, business])
 
   // Смерть или концовка — сохранение стирается, игра начинается заново
   useEffect(() => {
@@ -269,8 +277,8 @@ export function Game() {
       setStats((s) => {
         let { happiness, satiety, water, reputation, money } = s
 
-        // Пассивный доход
-        money += incomePerSec.current
+        // Пассивный доход: прокачки + бизнесы
+        money += incomePerSec.current + businessIncomeRef.current
 
         // Содержание армии крыс
         if (cityUnlockedRef.current && cityRef.current.rats > 0) {
@@ -444,6 +452,24 @@ export function Game() {
     playSfx("level-up")
     setStats((s) => ({ ...s, reputation: s.reputation + amount }))
   }, [])
+
+  // Покупка/улучшение бизнеса за деньги.
+  // Деньги проверяем снаружи апдейтера: иначе в dev-режиме уровень вырастет дважды.
+  const handleUpgradeBusiness = useCallback(
+    (id: string) => {
+      const b = BUSINESSES.find((x) => x.id === id)
+      if (!b) return
+      const level = business[id] ?? 0
+      if (level >= b.maxLevel) return
+      const cost = nextLevelCost(b, level)
+      if (!infiniteMoney.current && moneyRef.current < cost) return
+
+      playSfx("level-up")
+      setBusiness((prev) => ({ ...prev, [id]: (prev[id] ?? 0) + 1 }))
+      setStats((s) => ({ ...s, money: infiniteMoney.current ? 999999 : Math.max(0, s.money - cost) }))
+    },
+    [business],
+  )
 
   // Клик по Саше: +1$
   const handleSashaClick = useCallback(() => {
@@ -681,7 +707,13 @@ export function Game() {
           onOpenBusiness={() => setScreen("business")}
         />
       ) : screen === "business" ? (
-        <BusinessScreen onExit={() => setScreen("main")} />
+        <BusinessScreen
+          money={stats.money}
+          levels={business}
+          purchaseIndex={purchaseIndex}
+          onExit={() => setScreen("main")}
+          onUpgrade={handleUpgradeBusiness}
+        />
       ) : screen === "city" ? (
         <CityScreen
           city={city}
