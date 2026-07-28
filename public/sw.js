@@ -1,7 +1,7 @@
 // Сервис-воркер игры «Симулятор СашиПораши»
 // Стратегия: network-first для навигации, cache-first для статики (картинки/звуки/музыка)
 
-const CACHE_NAME = "sasha-porasha-v2"
+const CACHE_NAME = "sasha-porasha-v1"
 const OFFLINE_URL = "/"
 
 // Предкэшируем главную страницу при установке
@@ -44,12 +44,7 @@ self.addEventListener("fetch", (event) => {
     return
   }
 
-  // Музыку не кэшируем: треки весят десятки мегабайт и грузятся Range-запросами,
-  // а частичные ответы (206) в Cache API кладать нельзя
-  const url = new URL(request.url)
-  if (url.pathname.startsWith("/music/") || request.headers.has("range")) return
-
-  // Статика (картинки, звуки, иконки, шрифты, скрипты, стили): cache-first
+  // Статика (картинки, звуки, музыка, иконки, шрифты, скрипты, стили): cache-first
   const dest = request.destination
   if (["image", "audio", "font", "script", "style"].includes(dest)) {
     event.respondWith(
@@ -57,8 +52,7 @@ self.addEventListener("fetch", (event) => {
         (cached) =>
           cached ||
           fetch(request).then((response) => {
-            // Кладём в кэш только полные успешные ответы
-            if (response.ok && response.status === 200) {
+            if (response.ok) {
               const copy = response.clone()
               caches.open(CACHE_NAME).then((cache) => cache.put(request, copy))
             }

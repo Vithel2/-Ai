@@ -66,7 +66,7 @@ export function MainScreen({
         type="button"
         onClick={cityUnlocked ? onOpenCity : undefined}
         disabled={!cityUnlocked}
-        className={`absolute bottom-52 left-8 z-20 w-32 transition-transform md:bottom-64 md:w-36 lg:bottom-72 lg:w-40 short:bottom-32 short:left-4 short:w-20 ${
+        className={`absolute bottom-52 left-8 z-20 w-44 transition-transform md:bottom-64 md:w-52 lg:bottom-72 lg:w-60 short:bottom-32 short:left-4 short:w-28 ${
           cityUnlocked ? "hover:scale-105 active:scale-95" : "cursor-not-allowed opacity-50 grayscale"
         } ${cityDanger ? "animate-pulse rounded-3xl ring-4 ring-red-500 shadow-[0_0_30px_rgba(239,68,68,0.9)]" : ""}`}
         aria-label={

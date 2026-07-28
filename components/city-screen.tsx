@@ -13,12 +13,6 @@ export interface CityState {
 
 export const RAT_UPKEEP_PER_RAT = 0.5
 
-// Баланс города: стабильность падает сама, но её сдерживают крысы-патрули
-export const STABILITY_DECAY_PER_SEC = 0.25
-/** Каждая крыса замедляет падение стабильности, но не больше чем на 40% суммарно */
-export const RAT_PATROL_PER_RAT = 0.02
-export const RAT_PATROL_MAX = 0.4
-
 interface CityScreenProps {
   city: CityState
   reputation: number
@@ -44,10 +38,6 @@ export function CityScreen({
 }: CityScreenProps) {
   const protest = city.protest
   const upkeep = city.rats * RAT_UPKEEP_PER_RAT
-  // Сколько репутации приносит спокойный город и насколько крысы тормозят падение
-  const fame = city.stability >= 70 ? 2 : city.stability >= 40 ? 1 : 0
-  const patrolBonus = Math.min(RAT_PATROL_MAX, city.rats * RAT_PATROL_PER_RAT)
-  const decayNow = STABILITY_DECAY_PER_SEC * (1 - patrolBonus)
 
   return (
     <div className="absolute inset-0 z-30 overflow-y-auto">
@@ -115,7 +105,7 @@ export function CityScreen({
                 onClick={() => onSuppress("light")}
                 disabled={city.rats < 2 || reputation < 5}
                 className="w-full transition-transform hover:scale-105 active:scale-95 disabled:opacity-40 disabled:grayscale"
-                aria-label="Лёгкое подавление: 2 крысы, минус 5 репутации, минус 8 силы протеста, но дальше протест растёт быстрее"
+                aria-label="Лёгкое подавление: 2 крысы, минус 5 репутации, минус 2 силы протеста"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -129,7 +119,7 @@ export function CityScreen({
                 onClick={() => onSuppress("mid")}
                 disabled={city.rats < 5 || reputation < 10}
                 className="w-full transition-transform hover:scale-105 active:scale-95 disabled:opacity-40 disabled:grayscale"
-                aria-label="Среднее подавление: 5 крыс, минус 10 репутации, минус 20 силы протеста, риск переворота 5 процентов"
+                aria-label="Среднее подавление: 5 крыс, минус 10 репутации, минус 5 сил протеста"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -177,14 +167,8 @@ export function CityScreen({
                   style={{ width: `${Math.min(100, city.stability)}%` }}
                 />
               </div>
-              {/* Слава: спокойный город сам приносит репутацию — главный её источник в игре */}
-              <p className="mt-2 text-center text-sm text-neutral-300">
-                {fame > 0
-                  ? `Народ доволен: +${fame} репутации каждые 3 сек`
-                  : "Репутация не капает: подними стабильность до 40%"}
-              </p>
               {city.stability < 30 && (
-                <p className="mt-1 text-center text-sm font-bold text-orange-400">
+                <p className="mt-2 text-center text-sm font-bold text-orange-400">
                   Стабильность падает! Ниже 20% начнётся протест.
                 </p>
               )}
@@ -196,7 +180,7 @@ export function CityScreen({
                 onClick={onPropaganda}
                 disabled={reputation < 5}
                 className="w-full transition-transform hover:scale-105 active:scale-95 disabled:opacity-40 disabled:grayscale"
-                aria-label="Начать пропаганду: цена 5 репутации, стабильность плюс 4 процента"
+                aria-label="Начать пропаганду: цена 5 репутации, стабильность плюс 2 процента"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -210,7 +194,7 @@ export function CityScreen({
                 onClick={onBribe}
                 disabled={reputation < 15}
                 className="w-full transition-transform hover:scale-105 active:scale-95 disabled:opacity-40 disabled:grayscale"
-                aria-label="Подкупать знаменитостей: цена 15 репутации, стабильность плюс 10 процентов"
+                aria-label="Подкупать знаменитостей: цена 15 репутации, стабильность плюс 7 процентов"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -243,11 +227,6 @@ export function CityScreen({
             <span className="text-lg font-bold">{`Армия крыс: ${city.rats}`}</span>
             <span className="text-sm text-neutral-300">{`Содержание: ${upkeep.toFixed(1)}$/сек`}</span>
           </div>
-          {/* Крысы не только давят протесты, но и патрулируют улицы */}
-          <p className="w-full text-center text-sm text-neutral-300">
-            {`Патруль тормозит падение стабильности на ${Math.round(patrolBonus * 100)}% (сейчас −${decayNow.toFixed(2)}%/сек)`}
-            {patrolBonus >= RAT_PATROL_MAX ? " — предел" : ""}
-          </p>
           <button
             type="button"
             onClick={onHireRat}

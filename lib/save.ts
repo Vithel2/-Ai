@@ -24,12 +24,6 @@ export interface SaveData {
   }
   /** Промокод «vonuchka» от Артёма: получен и/или уже активирован */
   promo?: { unlocked: boolean; used: boolean }
-  /** Временные бонусы (пакет, лужа): хранится момент окончания, а не остаток */
-  tempBonuses?: { stat: "happiness" | "water"; perSec: number; until: number }[]
-  /** Кулдауны кнопок нужд в секундах */
-  cooldowns?: Record<string, number>
-  /** Уровни бизнесов по id — есть не во всех сейвах */
-  business?: Record<string, number>
 }
 
 const KEY = "sasha-porasha-save-v1"
