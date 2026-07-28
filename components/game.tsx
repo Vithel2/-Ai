@@ -16,6 +16,7 @@ import { GAME_EVENTS, type EventOutcome, type GameEvent } from "@/lib/events-dat
 import { preloadAssets } from "@/lib/preload"
 import { loadSave, writeSave, clearSave } from "@/lib/save"
 import { playSfx, playSfxLimited, stopSfx, startMusic } from "@/lib/audio"
+import { useNativeBackButton } from "@/lib/native-back"
 
 interface Stats {
   happiness: number
@@ -152,6 +153,28 @@ export function Game() {
   // Флаг через state: автосохранение включается только в рендере с уже применёнными данными,
   // иначе первый рендер перезатирает сохранение начальными значениями.
   const [restored, setRestored] = useState(false)
+
+  // Кнопка «Назад» на телефоне: закрывает верхний открытый экран.
+  // Возвращаем false только на главном экране — тогда игра свернётся
+  const handleNativeBack = useCallback(() => {
+    // Событие требует выбора игрока, отменить его нельзя
+    if (activeEvent) return true
+    if (activeScene) {
+      setActiveScene(null)
+      return true
+    }
+    if (showSettings) {
+      setShowSettings(false)
+      return true
+    }
+    if (screen !== "main") {
+      setScreen("main")
+      return true
+    }
+    return false
+  }, [activeEvent, activeScene, showSettings, screen])
+
+  useNativeBackButton(handleNativeBack)
   useEffect(() => {
     const save = loadSave()
     if (save) {
