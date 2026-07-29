@@ -53,23 +53,21 @@ export const SCENE_BUTTONS: Record<string, SceneButton> = {
 
 /**
  * Какая сценка показывается после какой покупки.
- * Здесь только покупки БЕЗ ивентов — по 3 сценки на каждую из 5 кнопок.
- * Интим со Златой — только после её появления (покупка zlata) и до расставания (breakup-zlata).
+ * Каждая из 5 сценок привязана РОВНО к одной покупке, иначе одна и та же
+ * плашка-результат выпадала по три раза за игру.
+ * Покупки выбраны из первых двух третей списка и по смыслу сценки —
+ * привязанные к самым дорогим покупкам в конце игрок почти никогда не видел.
+ * Все пять — покупки без ивентов, иначе ивент перекрыл бы сценку.
  */
 export const PURCHASE_SCENES: Record<string, string> = {
+  // 2-я покупка: рюкзак — школа, дз по английскому
   bag: "english",
+  // 6-я: выбросить учебники — дз по башкирскому
   throw: "bashkir",
+  // 14-я: подарок Злате — уже после её появления и до расставания
   "rat-gift": "intim-zlata",
+  // 16-я: захват школы — параша
   capture: "parasha",
-  rebuild: "english",
-  "fart-director": "bashkir",
+  // 20-я: запрет гигиены — с Сашей перестали общаться
   "ban-hygiene": "lonely",
-  "ban-washing": "parasha",
-  "car-production": "intim-zlata",
-  protests: "lonely",
-  lavrushka: "intim-zlata",
-  "breakup-zlata": "lonely",
-  statue: "bashkir",
-  "date-artem": "parasha",
-  "sleep-artem": "english",
 }

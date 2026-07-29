@@ -73,6 +73,8 @@ export function Game() {
   const justBoughtRef = useRef(false)
   const [ending, setEnding] = useState<"secret" | "final" | "coup" | null>(null)
   const eventsDone = useRef<Set<string>>(new Set())
+  // Показанные сценки — каждая должна встретиться за игру только один раз
+  const scenesDone = useRef<Set<string>>(new Set())
   const lampFailed = useRef(false)
   // Задержка только для ивентов без привязки к покупке (ЖОПА ПОЛНАЯ 2 после лампы)
   const nextEventAllowedAt = useRef(Date.now() + 10000)
@@ -180,6 +182,7 @@ export function Game() {
     if (save) {
       // Сначала восстанавливаем refs, чтобы эффекты от setState видели актуальные данные
       eventsDone.current = new Set(save.eventsDone)
+      scenesDone.current = new Set(save.scenesDone ?? [])
       lampFailed.current = save.lampFailed
       incomePerSec.current = save.incomePerSec
       happinessPer3Sec.current = save.happinessPer3Sec
@@ -205,6 +208,7 @@ export function Game() {
       purchaseIndex,
       unlocked,
       eventsDone: Array.from(eventsDone.current),
+      scenesDone: Array.from(scenesDone.current),
       lampFailed: lampFailed.current,
       incomePerSec: incomePerSec.current,
       happinessPer3Sec: happinessPer3Sec.current,
@@ -242,7 +246,10 @@ export function Game() {
     if (justBought) {
       const lastPurchase = PURCHASES[purchaseIndex - 1]
       const sceneId = lastPurchase ? PURCHASE_SCENES[lastPurchase.id] : undefined
-      if (sceneId && SCENE_BUTTONS[sceneId]) {
+      // Каждую сценку показываем один раз за игру: без этой проверки повторный
+      // проход эффекта показывал одну и ту же плашку-результат заново
+      if (sceneId && SCENE_BUTTONS[sceneId] && !scenesDone.current.has(sceneId)) {
+        scenesDone.current.add(sceneId)
         const t = setTimeout(() => setActiveScene(SCENE_BUTTONS[sceneId]), 1200)
         return () => clearTimeout(t)
       }
@@ -369,7 +376,7 @@ export function Game() {
         return next
       })
 
-      // Инвестиции бизнеса: таймеры тикают, по завершении — выплата
+      // Инвестиц��и бизнеса: таймеры тикают, по завершении — выплата
       if (Object.keys(investTimersRef.current).length > 0) {
         const nextTimers: Record<string, number> = {}
         const finished: string[] = []
