@@ -26,6 +26,8 @@ export interface SaveData {
   promo?: { unlocked: boolean; used: boolean }
   /** Активные инвестиции бизнеса: сколько секунд осталось до выплаты */
   investments?: Record<string, number>
+  /** Уже показанные мини-сценки — чтобы не повторялись. Есть не во всех сейвах */
+  scenesDone?: string[]
 }
 
 const KEY = "sasha-porasha-save-v1"

@@ -1,5 +1,9 @@
 import type { MetadataRoute } from "next"
 
+// Манифест не зависит от запроса, поэтому его можно записать в файл при сборке.
+// Без этого статический экспорт (нужный для APK) падает с ошибкой
+export const dynamic = "force-static"
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "СимуляторСашиПораши",

@@ -1,6 +1,8 @@
 // Тихая фоновая предзагрузка всех файлов игры,
 // чтобы звуки и картинки не тормозили при первом использовании
 
+import { isNativeApp } from "@/lib/platform"
+
 const IMAGES = [
   "action-bath.png",
   "action-fart-upgraded.png",
@@ -135,6 +137,11 @@ let started = false
 export function preloadAssets() {
   if (started || typeof window === "undefined") return
   started = true
+
+  // В APK все файлы уже лежат внутри приложения и открываются мгновенно.
+  // Скачивать их в память незачем: на слабых телефонах 60+ МБ блобов
+  // приводили к зависанию и вылету приложения при запуске
+  if (isNativeApp()) return
 
   const files = [...IMAGES, ...SFX, ...MUSIC]
   // Загружаем по несколько файлов за раз, чтобы не душить сеть

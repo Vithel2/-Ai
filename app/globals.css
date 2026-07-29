@@ -29,6 +29,10 @@ body {
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  /* В приложении долгое нажатие не должно вызывать меню «копировать/поделиться» */
+  -webkit-touch-callout: none;
+  /* Гасим оттягивание страницы и подсветку у краёв экрана */
+  overscroll-behavior: none;
 }
 
 @keyframes float-up {
